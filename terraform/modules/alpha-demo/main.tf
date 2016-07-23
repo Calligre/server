@@ -131,11 +131,11 @@ resource "aws_instance" "alpha" {
   subnet_id = "${aws_subnet.alpha.id}"
 
   provisioner "file" {
-    source = "../alpha"
+    source = "../../../alpha"
     destination = "/home/ubuntu"
   }
 
   provisioner "remote-exec" {
-    script = "alpha-demo/provision.sh"
+    script = "modules/alpha-demo/provision.sh"
   }
 }

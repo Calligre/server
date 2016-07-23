@@ -1,5 +1,5 @@
 module "alpha-demo" {
-  source = "./alpha-demo"
+  source = "./modules/alpha-demo"
 
   aws_access_key = "${var.aws_access_key}"
   aws_secret_key = "${var.aws_secret_key}"
