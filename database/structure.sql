@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS info CASCADE;
 CREATE TABLE info (
+    id              serial      PRIMARY KEY,             -- should only be one of these
     name            text        NOT NULL,
     logo            text        NOT NULL DEFAULT '',     -- URL
     location        text        NOT NULL DEFAULT '',
@@ -38,6 +39,7 @@ CREATE TABLE account (
 
 DROP TABLE IF EXISTS subscription CASCADE;
 CREATE TABLE subscription (
+    id              serial      PRIMARY KEY,
     account_id      integer     NOT NULL REFERENCES account(id),
     event_id        integer     NOT NULL REFERENCES event(id)
 );
