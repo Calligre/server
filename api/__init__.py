@@ -38,8 +38,6 @@ def spec():
     for rule in flask.current_app.url_map.iter_rules():
         if rule.endpoint == 'static':
             continue
-        if rule.rule in ('/', '/ping'):
-            continue
 
         data['meta'][rule.rule] = [m for m in rule.methods
                                    if m not in ('HEAD', 'OPTIONS')]
