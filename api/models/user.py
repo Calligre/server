@@ -12,7 +12,9 @@ class UserList(flask_restful.Resource):
 
     def post(self):
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('name', type=str, location='json', required=True)
+        req.add_argument('first_name', type=str, location='json',
+                         required=True)
+        req.add_argument('last_name', type=str, location='json', required=True)
         req.add_argument('email', type=str, location='json', required=True)
 
         req.add_argument('description', type=str, location='json', default='')
@@ -28,14 +30,14 @@ class UserList(flask_restful.Resource):
         args = req.parse_args()
 
         return post('user',
-                    """ INSERT INTO account (name, email, description,
-                                             organization, photo, points,
-                                             private, facebook, linkedin,
-                                             twitter)
-                        VALUES (%(name)s, %(email)s, %(description)s,
-                                %(organization)s, %(photo)s, %(points)s,
-                                %(private)s, %(facebook)s, %(twitter)s,
-                                %(linkedin)s)
+                    """ INSERT INTO account (first_name, last_name, email,
+                                             description, organization, photo,
+                                             points, private, facebook,
+                                             linkedin, twitter)
+                        VALUES (%(first_name)s, %(last_name)s, %(email)s,
+                                %(description)s, %(organization)s, %(photo)s,
+                                %(points)s, %(private)s, %(facebook)s,
+                                %(twitter)s, %(linkedin)s)
                         RETURNING id """,
                     args)
 
@@ -53,7 +55,8 @@ class User(flask_restful.Resource):
 
     def patch(self, uid):
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('name', type=str, location='json', default=None)
+        req.add_argument('first_name', type=str, location='json', default=None)
+        req.add_argument('last_name', type=str, location='json', default=None)
         req.add_argument('email', type=str, location='json', default=None)
 
         req.add_argument('description', type=str, location='json',
@@ -83,11 +86,12 @@ class User(flask_restful.Resource):
 
         return patch('user',
                      """ UPDATE account
-                         SET (name, email, description, organization, photo,
-                              points, private, facebook, linkedin, twitter) =
-                             (%(name)s, %(email)s, %(description)s,
-                              %(organization)s, %(photo)s, %(points)s,
-                              %(private)s, %(facebook)s, %(twitter)s,
-                              %(linkedin)s)
+                         SET (first_name, last_name, email, description,
+                              organization, photo, points, private, facebook,
+                              linkedin, twitter) =
+                             (%(first_name)s, %(last_name)s, %(email)s,
+                              %(description)s, %(organization)s, %(photo)s,
+                              %(points)s, %(private)s, %(facebook)s,
+                              %(twitter)s, %(linkedin)s)
                          WHERE id = %(id)s """,
                      item)

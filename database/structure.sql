@@ -25,7 +25,8 @@ CREATE TABLE event (
 DROP TABLE IF EXISTS account CASCADE;
 CREATE TABLE account (
     id              serial      PRIMARY KEY,
-    name            text        NOT NULL,
+    first_name      text        NOT NULL,
+    last_name       text        NOT NULL,
     email           text        NOT NULL,
     organization    text        NOT NULL DEFAULT '',
     photo           text        NOT NULL DEFAULT '',
