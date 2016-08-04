@@ -18,7 +18,7 @@ app = flask.Flask(__name__)
 app.secret_key = SECRET_KEY
 
 
-restful = flask_restful.Api(app)
+restful = flask_restful.Api(app, prefix='/api')
 restful.add_resource(api.models.broadcast.Broadcast, '/broadcast/<int:bid>')
 restful.add_resource(api.models.broadcast.BroadcastList, '/broadcast')
 restful.add_resource(api.models.event.Event, '/event/<int:eid>')
@@ -35,7 +35,7 @@ restful.add_resource(api.models.user.UserList, '/user')
 restful.add_resource(api.models.user.UserPhoto, '/user/<int:uid>/photo')
 
 
-@app.route('/')
+@app.route('/api')
 def spec():
     data = {'meta': dict()}
 
@@ -49,6 +49,6 @@ def spec():
     return flask.jsonify(data), flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@app.route('/ping')
+@app.route('/api/ping')
 def ping():
     return 'pong'
