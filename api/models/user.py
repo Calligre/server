@@ -46,7 +46,30 @@ class UserPhoto(flask_restful.Resource):
 
 class UserList(flask_restful.Resource):
     def get(self):
-        return gets('user', 'SELECT * FROM account')
+        req = flask_restful.reqparse.RequestParser()
+        req.add_argument('first_name', type=str, location='json', default=None)
+        req.add_argument('last_name', type=str, location='json', default=None)
+        req.add_argument('email', type=str, location='json', default=None)
+
+        req.add_argument('description', type=str, location='json',
+                         default=None)
+        req.add_argument('organization', type=str, location='json',
+                         default=None)
+        req.add_argument('photo', type=str, location='json', default=None)
+
+        req.add_argument('points', type=int, location='json', default=None)
+        req.add_argument('private', type=bool, location='json', default=None)
+
+        req.add_argument('facebook', type=str, location='json', default=None)
+        req.add_argument('linkedin', type=str, location='json', default=None)
+        req.add_argument('twitter', type=str, location='json', default=None)
+        args = req.parse_args()
+        args = {k: v for k, v in args.items() if v is not None}
+
+        conds = ["AND {}='{}' ".format(k, v) for k, v in args.items()]
+        return gets('user',
+                    """ SELECT * FROM account
+                        WHERE 1=1 {} """.format(''.join(conds)))
 
     def post(self):
         req = flask_restful.reqparse.RequestParser()

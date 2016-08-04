@@ -8,7 +8,20 @@ from api.database import delete, get, gets, patch, post
 
 class EventList(flask_restful.Resource):
     def get(self):
-        return gets('event', 'SELECT * FROM event')
+        req = flask_restful.reqparse.RequestParser()
+        req.add_argument('name', type=str, location='json', default=None)
+
+        req.add_argument('location', type=str, location='json', default=None)
+        req.add_argument('stream', type=int, location='json', default=None)
+
+        req.add_argument('starttime', type=int, location='json', default=None)
+        req.add_argument('endtime', type=int, location='json', default=None)
+        args = req.parse_args()
+        args = {k: v for k, v in args.items() if v is not None}
+
+        conds = ["AND {}='{}' ".format(k, v) for k, v in args.items()]
+        return gets('event',
+                    'SELECT * FROM event WHERE 1=1 {}'.format(''.join(conds)))
 
     def post(self):
         req = flask_restful.reqparse.RequestParser()
@@ -54,6 +67,7 @@ class Event(flask_restful.Resource):
         req.add_argument('starttime', type=int, location='json', default=None)
         req.add_argument('endtime', type=int, location='json', default=None)
         args = req.parse_args()
+        args = {k: v for k, v in args.items() if v is not None}
 
         body, stat = get('event',
                          'SELECT * FROM event WHERE id = %(eid)s',
@@ -63,8 +77,7 @@ class Event(flask_restful.Resource):
 
         item = body['data']['attributes']
         for k, v in args.items():
-            if v is not None:
-                item[k] = v
+            item[k] = v
 
         return patch('event',
                      """ UPDATE event
