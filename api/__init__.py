@@ -52,3 +52,9 @@ def spec():
 @app.route('/api/ping')
 def ping():
     return 'pong'
+
+
+@app.after_request
+def cors(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
