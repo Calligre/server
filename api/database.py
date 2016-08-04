@@ -1,11 +1,18 @@
+import os
 import traceback
 
 import flask_api
 import psycopg2
 
 
-# TODO: get database secrets
-db = psycopg2.connect(database='postgres', user='postgres')
+DB_BASE = os.environ.get('DB_BASE', 'postgres')
+DB_USER = os.environ.get('DB_USER', 'postgres')
+DB_PASS = os.environ.get('DB_PASS', 'postgres')
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_PORT = os.environ.get('DB_PORT', 5432)
+
+db = psycopg2.connect(database=DB_BASE, user=DB_USER, password=DB_PASS,
+                      host=DB_HOST, port=DB_PORT)
 
 
 def delete(_resource, query, params):
