@@ -40,16 +40,16 @@ restful.add_resource(api.models.user.UserPhoto, '/user/<int:uid>/photo')
 def spec():
     data = {'meta': dict()}
 
+    # TODO: pull these from Dynamo spec
+    data['meta']['/api/content'] = ['GET', 'POST']
+    data['meta']['/api/content/<int:cid>'] = ['DELETE', 'GET']
+
     for rule in flask.current_app.url_map.iter_rules():
         if rule.endpoint == 'static':
             continue
 
         data['meta'][rule.rule] = sorted([m for m in rule.methods
                                           if m not in ('HEAD', 'OPTIONS')])
-
-    # TODO: pull these from Dynamo spec
-    data['meta']['/content'] = ['GET', 'POST']
-    data['meta']['/content/<int:cid>'] = ['DELETE', 'GET']
 
     return flask.jsonify(data), flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
