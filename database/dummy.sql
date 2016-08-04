@@ -26,4 +26,4 @@ INSERT INTO subscription (account_id, event_id) VALUES (1, 1);
 
 INSERT INTO broadcast (message, expiryTime)
     VALUES ('Hi everyone!', 1468120172),
-           ('And goodbye!', 1468130172),
+           ('And goodbye!', 1468130172);
