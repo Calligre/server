@@ -19,3 +19,11 @@ module "alpha-demo" {
   key_name = "${var.key_name}"
   ami = "${lookup(var.amis, var.region)}"
 }
+
+module "conference" {
+  source = "./modules/conference"
+
+  name = "test-conference"
+  key_name = "${var.key_name}"
+  ami = "${lookup(var.amis, var.region)}"
+}
