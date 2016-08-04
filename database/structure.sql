@@ -44,3 +44,10 @@ CREATE TABLE subscription (
     account_id      integer     NOT NULL REFERENCES account(id),
     event_id        integer     NOT NULL REFERENCES event(id)
 );
+
+DROP TABLE IF EXISTS broadcast CASCADE;
+CREATE TABLE broadcast (
+    id              serial      PRIMARY KEY,
+    message         text        NOT NULL,
+    expiryTime      bigint      NOT NULL
+);

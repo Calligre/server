@@ -4,6 +4,7 @@ import flask
 import flask_api
 import flask_restful
 
+import api.models.broadcast
 import api.models.event
 import api.models.info
 import api.models.subscription
@@ -18,6 +19,8 @@ app.secret_key = SECRET_KEY
 
 
 restful = flask_restful.Api(app)
+restful.add_resource(api.models.broadcast.Broadcast, '/broadcast/<int:bid>')
+restful.add_resource(api.models.broadcast.BroadcastList, '/broadcast')
 restful.add_resource(api.models.event.Event, '/event/<int:eid>')
 restful.add_resource(api.models.event.EventList, '/event')
 restful.add_resource(api.models.info.Info, '/info')
