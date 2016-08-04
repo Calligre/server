@@ -56,6 +56,7 @@ def ping():
 
 @app.after_request
 def cors(response):
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     response.headers['Access-Control-Allow-Methods'] = ', '.join(
         ('GET', 'POST', 'PUT', 'PATCH', 'DELETE'))
     response.headers['Access-Control-Allow-Origin'] = '*'
