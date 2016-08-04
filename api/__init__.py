@@ -25,7 +25,8 @@ restful.add_resource(api.models.event.Event, '/event/<int:eid>')
 restful.add_resource(api.models.event.EventList, '/event')
 restful.add_resource(api.models.info.Info, '/info')
 restful.add_resource(api.models.subscription.Subscription,
-                     '/user/<int:uid>/subscription/<int:eid>')
+                     '/user/<int:uid>/subscription/<int:eid>',
+                     '/event/<int:eid>/subscription/<int:uid>')
 restful.add_resource(api.models.subscription.SubscriptionEventList,
                      '/event/<int:eid>/subscription')
 restful.add_resource(api.models.subscription.SubscriptionUserList,
