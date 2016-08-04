@@ -29,6 +29,7 @@ restful.add_resource(api.models.subscription.SubscriptionUserList,
                      '/user/<int:uid>/subscription')
 restful.add_resource(api.models.user.User, '/user/<int:uid>')
 restful.add_resource(api.models.user.UserList, '/user')
+restful.add_resource(api.models.user.UserPhoto, '/user/<int:uid>/photo')
 
 
 @app.route('/')

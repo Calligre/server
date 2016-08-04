@@ -1,9 +1,47 @@
 # pylint: disable=R0201
+import boto3
 import flask_api
 import flask_restful
 import flask_restful.reqparse
+import requests
 
 from api.database import delete, get, gets, patch, post
+
+
+# TODO: parameterize
+S3_BUCKET = 'calligre-profilepics'
+
+
+class UserPhoto(flask_restful.Resource):
+    def put(self, uid):
+        req = flask_restful.reqparse.RequestParser()
+        req.add_argument('data', type=str, location='json', required=True)
+        args = req.parse_args()
+
+        filename = 'profilepic-{}.jpg'.format(uid)
+        base64 = args['data']
+
+        s3 = boto3.client('s3')
+        data = s3.generate_presigned_post(
+            Bucket=S3_BUCKET,
+            Key=filename,
+            Fields={'acl': 'public-read', 'Content-Type': 'image/jpeg'},
+            Conditions=[
+                {'acl': 'public-read'},
+                {'Content-Type': 'image/jpeg'}
+            ],
+            ExpiresIn=3600
+        )
+
+        files = {'file': base64}
+        response = requests.post(data['url'], data=data['fields'], files=files)
+        if response.status_code != 204:
+            data = {'errors': [{'title': 'could not communicate with S3'}]}
+            return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        url = 'https://{}.s3.amazonaws.com/{}'.format(S3_BUCKET, filename)
+        data = {'data': {'url': url}}
+        return data, flask_api.status.HTTP_201_CREATED
 
 
 class UserList(flask_restful.Resource):
