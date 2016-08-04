@@ -5,6 +5,8 @@ import flask_restful
 import flask_restful.reqparse
 import requests
 
+from base64 import b64decode
+
 from api.database import delete, get, gets, patch, post
 
 
@@ -19,23 +21,18 @@ class UserPhoto(flask_restful.Resource):
         args = req.parse_args()
 
         filename = 'profilepic-{}.jpg'.format(uid)
-        base64 = args['data']
+        photo = b64decode(args['data'].split(",")[1])
 
         s3 = boto3.client('s3')
-        data = s3.generate_presigned_post(
+        response = s3.put_object(
             Bucket=S3_BUCKET,
             Key=filename,
-            Fields={'acl': 'public-read', 'Content-Type': 'image/jpeg'},
-            Conditions=[
-                {'acl': 'public-read'},
-                {'Content-Type': 'image/jpeg'}
-            ],
-            ExpiresIn=3600
+            Body=photo,
+            ACL='public-read',
+            ContentType="image/jpeg"
         )
 
-        files = {'file': base64}
-        response = requests.post(data['url'], data=data['fields'], files=files)
-        if response.status_code != 204:
+        if response.get("ResponseMetadata", {}).get("HTTPStatusCode", 500) != 200:
             data = {'errors': [{'title': 'could not communicate with S3'}]}
             return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
