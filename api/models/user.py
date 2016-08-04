@@ -77,7 +77,9 @@ class UserList(flask_restful.Resource):
 
         req.add_argument('description', type=str, location='json', default='')
         req.add_argument('organization', type=str, location='json', default='')
-        req.add_argument('photo', type=str, location='json', default='')
+        req.add_argument(
+            'photo', type=str, location='json',
+            default='https://u.o0bc.com/avatars/stock/_no-user-image.gif')
 
         req.add_argument('points', type=int, location='json', default=0)
         req.add_argument('private', type=bool, location='json', default=False)
