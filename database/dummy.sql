@@ -12,7 +12,7 @@ INSERT INTO account (first_name, last_name, email, organization)
 INSERT INTO info (name, logo, location, twitter, facebook, other, startTime, endTime)
     VALUES ('SE Hackday', 'http://se.hackday.ca/assets/logo-white-0b4035ad70a69a2ffe9f254c53d11b16.png',
             'Multimedia lab', 'https://twitter.com', 'https://facebook.com',
-            'More shit.', 1468120162, 1468226562);
+            'Come out, do a project, and show us what ya got!', 1468120162, 1468226562);
 
 
 INSERT INTO event (name, description, stream, location, startTime, endTime)
