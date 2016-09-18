@@ -1,11 +1,10 @@
 # pylint: disable=R0201
+from base64 import b64decode
+
 import boto3
 import flask_api
 import flask_restful
 import flask_restful.reqparse
-import requests
-
-from base64 import b64decode
 
 from api.database import delete, get, gets, patch, post
 
@@ -29,10 +28,11 @@ class UserPhoto(flask_restful.Resource):
             Key=filename,
             Body=photo,
             ACL='public-read',
-            ContentType="image/jpeg"
+            ContentType='image/jpeg'
         )
 
-        if response.get("ResponseMetadata", {}).get("HTTPStatusCode", 500) != 200:
+        if response.get('ResponseMetadata',
+                        {}).get('HTTPStatusCode', 500) != 200:
             data = {'errors': [{'title': 'could not communicate with S3'}]}
             return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
