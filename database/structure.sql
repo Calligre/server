@@ -24,7 +24,7 @@ CREATE TABLE event (
 
 DROP TABLE IF EXISTS account CASCADE;
 CREATE TABLE account (
-    id              serial      PRIMARY KEY,
+    id              text        PRIMARY KEY,
     first_name      text        NOT NULL,
     last_name       text        NOT NULL,
     email           text        NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE account (
 DROP TABLE IF EXISTS subscription CASCADE;
 CREATE TABLE subscription (
     id              serial      PRIMARY KEY,
-    account_id      integer     NOT NULL REFERENCES account(id),
+    account_id      text        NOT NULL REFERENCES account(id),
     event_id        integer     NOT NULL REFERENCES event(id)
 );
 

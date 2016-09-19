@@ -24,19 +24,19 @@ restful.add_resource(api.models.broadcast.BroadcastList, '/broadcast')
 restful.add_resource(api.models.event.Event, '/event/<int:eid>')
 restful.add_resource(api.models.event.EventList, '/event')
 restful.add_resource(api.models.event.EventUserList,
-                     '/event/subscribed/<int:uid>',
-                     '/user/<int:uid>/subscribed')
+                     '/event/subscribed/<uid>',
+                     '/user/<uid>/subscribed')
 restful.add_resource(api.models.info.Info, '/info')
 restful.add_resource(api.models.subscription.Subscription,
-                     '/user/<int:uid>/subscription/<int:eid>',
-                     '/event/<int:eid>/subscription/<int:uid>')
+                     '/user/<uid>/subscription/<int:eid>',
+                     '/event/<int:eid>/subscription/<uid>')
 restful.add_resource(api.models.subscription.SubscriptionEventList,
                      '/event/<int:eid>/subscription')
 restful.add_resource(api.models.subscription.SubscriptionUserList,
-                     '/user/<int:uid>/subscription')
-restful.add_resource(api.models.user.User, '/user/<int:uid>')
+                     '/user/<uid>/subscription')
+restful.add_resource(api.models.user.User, '/user/<uid>')
 restful.add_resource(api.models.user.UserList, '/user')
-restful.add_resource(api.models.user.UserPhoto, '/user/<int:uid>/photo')
+restful.add_resource(api.models.user.UserPhoto, '/user/<uid>/photo')
 
 
 @app.route('/api')

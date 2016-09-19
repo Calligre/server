@@ -70,6 +70,7 @@ class UserList(flask_restful.Resource):
 
     def post(self):
         req = flask_restful.reqparse.RequestParser()
+        req.add_argument('id', type=str, location='json', required=True)
         req.add_argument('first_name', type=str, location='json',
                          required=True)
         req.add_argument('last_name', type=str, location='json', required=True)
@@ -90,14 +91,14 @@ class UserList(flask_restful.Resource):
         args = req.parse_args()
 
         return post('user',
-                    """ INSERT INTO account (first_name, last_name, email,
+                    """ INSERT INTO account (id, first_name, last_name, email,
                                              description, organization, photo,
                                              points, private, facebook,
                                              linkedin, twitter)
-                        VALUES (%(first_name)s, %(last_name)s, %(email)s,
-                                %(description)s, %(organization)s, %(photo)s,
-                                %(points)s, %(private)s, %(facebook)s,
-                                %(twitter)s, %(linkedin)s)
+                        VALUES (%(id)s, %(first_name)s, %(last_name)s,
+                                %(email)s, %(description)s, %(organization)s,
+                                %(photo)s, %(points)s, %(private)s,
+                                %(facebook)s, %(twitter)s, %(linkedin)s)
                         RETURNING id """,
                     args)
 
