@@ -1,9 +1,12 @@
 import os
 
 import flask
+from flask import _request_ctx_stack
 import flask_api
 import flask_restful
+import werkzeug.local
 
+import api.auth
 import api.models.broadcast
 import api.models.event
 import api.models.info
@@ -16,7 +19,6 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '[not-a-s3cr3t]')
 
 app = flask.Flask(__name__)
 app.secret_key = SECRET_KEY
-
 
 restful = flask_restful.Api(app, prefix='/api')
 restful.add_resource(api.models.broadcast.Broadcast, '/broadcast/<int:bid>')
@@ -38,6 +40,9 @@ restful.add_resource(api.models.user.User, '/user/<uid>')
 restful.add_resource(api.models.user.UserList, '/user')
 restful.add_resource(api.models.user.UserPhoto, '/user/<uid>/photo')
 
+current_user = werkzeug.local.LocalProxy(
+    lambda: _request_ctx_stack.top.current_user)
+
 
 @app.route('/api')
 def spec():
@@ -57,6 +62,12 @@ def spec():
     return flask.jsonify(data), flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
+@app.route('/api/me')
+@api.auth.requires_auth
+def me():
+    return current_user
+
+
 @app.route('/api/ping')
 def ping():
     return 'pong'
@@ -64,7 +75,8 @@ def ping():
 
 @app.after_request
 def cors(response):
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Access-Control-Allow-Headers'] = ['Content-Type',
+                                                        'Authorization']
     response.headers['Access-Control-Allow-Methods'] = ', '.join(
         ('GET', 'POST', 'PUT', 'PATCH', 'DELETE'))
     response.headers['Access-Control-Allow-Origin'] = '*'

@@ -1,5 +1,5 @@
 # pylint: disable=R0201
-from base64 import b64decode
+import base64
 
 import boto3
 import flask_api
@@ -20,7 +20,7 @@ class UserPhoto(flask_restful.Resource):
         args = req.parse_args()
 
         filename = 'profilepic-{}.jpg'.format(uid)
-        photo = b64decode(args['data'].split(",")[1])
+        photo = base64.b64decode(args['data'].split(',')[1])
 
         s3 = boto3.client('s3')
         response = s3.put_object(
