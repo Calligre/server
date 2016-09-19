@@ -23,6 +23,9 @@ restful.add_resource(api.models.broadcast.Broadcast, '/broadcast/<int:bid>')
 restful.add_resource(api.models.broadcast.BroadcastList, '/broadcast')
 restful.add_resource(api.models.event.Event, '/event/<int:eid>')
 restful.add_resource(api.models.event.EventList, '/event')
+restful.add_resource(api.models.event.EventUserList,
+                     '/event/subscribed/<int:uid>',
+                     '/user/<int:uid>/subscribed')
 restful.add_resource(api.models.info.Info, '/info')
 restful.add_resource(api.models.subscription.Subscription,
                      '/user/<int:uid>/subscription/<int:eid>',

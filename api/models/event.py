@@ -44,6 +44,15 @@ class EventList(flask_restful.Resource):
                     args)
 
 
+class EventUserList(flask_restful.Resource):
+    def get(self, uid):
+        return gets('event',
+                    """ SELECT * FROM event
+                        INNER JOIN subscription sub ON sub.event_id = event.id
+                        WHERE sub.account_id = %(uid)s """,
+                    {'uid': uid})
+
+
 class Event(flask_restful.Resource):
     def delete(self, eid):
         return delete('event',
