@@ -12,8 +12,11 @@ AUTH0_CLIENT_ID = os.environ.get('AUTH0_CLIENT_ID', '')
 AUTH0_SECRET_ID = os.environ.get('AUTH0_SECRET_ID', '')
 
 
-def requires_auth(f):
-    @functools.wraps(f)
+def requires_auth(function):
+    # TODO: we should clean this up, but for now its mostly copied from the
+    # Auth0 sample page
+    # pylint: disable=too-many-return-statements
+    @functools.wraps(function)
     def decorated(*args, **kwargs):
         auth = flask.request.headers.get('Authorization', None)
         if not auth:
@@ -57,6 +60,6 @@ def requires_auth(f):
             return flask.jsonify(data), flask_api.status.HTTP_401_UNAUTHORIZED
 
         _request_ctx_stack.top.current_user = payload
-        return f(*args, **kwargs)
+        return function(*args, **kwargs)
 
     return decorated
