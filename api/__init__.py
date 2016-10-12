@@ -65,7 +65,8 @@ def spec():
 @app.route('/api/me')
 @api.auth.requires_auth
 def me():
-    return current_user
+    user = str(current_user)
+    return flask.jsonify(user), flask_api.status.HTTP_200_OK
 
 
 @app.route('/api/ping')
