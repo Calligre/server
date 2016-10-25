@@ -20,3 +20,11 @@ Config for the Postgres database used by the non-social API.
 
     psql -f database/structure.sql  # migrate database
     psql -f database/dummy.sql      # insert dummy data for testing
+
+## [Proxy](proxy/)
+Config for nginx proxy.
+
+### Usage
+
+    docker build -t nginx-proxy proxy/
+    docker run -d --net=host --volume ${APP_DIR}:/www nginx-proxy
