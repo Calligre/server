@@ -1,13 +1,14 @@
 # pylint: disable=R0201
+import random
+import string
+from decimal import Decimal
+
 import boto3
+from boto3.dynamodb.conditions import Key
+
 import flask_api
 import flask_restful
 import flask_restful.reqparse
-import random
-import string
-
-from boto3.dynamodb.conditions import Key
-from decimal import Decimal
 
 from api.database import delete, get, gets, patch, post
 
@@ -15,8 +16,10 @@ from api.database import delete, get, gets, patch, post
 # TODO: parameterize
 MAX_POSTS = 25
 
-dynamo_boto = boto3.session(profile_name="dynamo")
-dynamo = dynamo_boto.resource('dynamodb', region_name="us-west-2").Table("calligre-posts")
+dynamo_boto = boto3.Session(profile_name="dynamo")
+dynamo = dynamo_boto.resource('dynamodb', region_name="us-west-2")
+                    .Table("calligre-posts")
+
 
 class SocialContentList(flask_restful.Resource):
     def get(self):
@@ -30,7 +33,7 @@ class SocialContentList(flask_restful.Resource):
 
         proj = "#ts,poster_id,#txt,media_link,like_count"
         reservedWords = {
-            "#ts":"timestamp",
+            "#ts": "timestamp",
             "#txt": "text"
         }
         params = {
@@ -38,13 +41,14 @@ class SocialContentList(flask_restful.Resource):
             "ScanIndexForward": False,
             "ProjectionExpression": proj,
             "ExpressionAttributeNames": reservedWords,
-            "KeyConditionExpression": Key("posts").eq("posts") & Key("timestamp").gt(Decimal(0)),
+            "KeyConditionExpression": Key("posts").eq("posts") &
+                                        Key("timestamp").gt(Decimal(0)),
         }
 
         if args.get("offset"):
             params["ExclusiveStartKey"] = {
-                "posts":"posts",
-                "timestamp": Decimal(offset)
+                "posts": "posts",
+                "timestamp": Decimal(args.get("offset"))
             }
 
         r = dynamo.query(**params)
@@ -54,7 +58,8 @@ class SocialContentList(flask_restful.Resource):
         for item in posts:
             item['id'] = str(item.get("timestamp"))
             item['poster_name'] = "Lookup Name Result"
-            item['poster_icon'] = "http://calligre-profilepics.s3-website-us-west-2.amazonaws.com/profilepic-1.jpg"
+            item['poster_icon'] =
+                "http://calligre-profilepics.s3-website-us-west-2.amazonaws.com/profilepic-1.jpg"
             item['current_user_likes'] = True
 
         nextOffset = r.get("LastEvaluatedKey", {}).get("timestamp")
@@ -64,13 +69,14 @@ class SocialContentList(flask_restful.Resource):
         status = r.get("ResponseMetadata", {}).get("HTTPStatusCode", 500)
 
         if status == 500:
-            data = {'errors': [{'title': 'could not communicate with DynamoDB'}]}
+            data = {'errors':
+                    [{'title': 'could not communicate with DynamoDB'}]}
             return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
         body = {
             "posts": posts,
             "count": r.get("Count", 0),
-            "nextOffset" : nextOffset
+            "nextOffset": nextOffset
         }
 
         if r.get("Count", 0) == 0:
@@ -81,40 +87,39 @@ class SocialContentList(flask_restful.Resource):
     def post(self):
         pass
 
+
 class SocialContentUploadURL(flask_restful.Resource):
     def get(self):
         s3 = boto3.client('s3')
-        post = s3.generate_presigned_post(
+        post_url = s3.generate_presigned_post(
             Bucket='calligre-images-pending-resize',
-            Key=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(12))
+            Key=''.join(random.choice(string.ascii_uppercase + string.digits)
+                        for _ in range(12))
         )
-        return post, flask_api.status.HTTP_200_OK
+        return post_url, flask_api.status.HTTP_200_OK
+
 
 class SingleSocialContent(flask_restful.Resource):
     def get(self, postid):
         proj = "#ts,poster_id,#txt,media_link,like_count"
         reservedWords = {
-            "#ts":"timestamp",
+            "#ts": "timestamp",
             "#txt": "text"
         }
         params = {
-            "Limit": limit,
+            "Limit": 1,
             "ScanIndexForward": False,
             "ProjectionExpression": proj,
             "ExpressionAttributeNames": reservedWords,
-            "KeyConditionExpression": Key("posts").eq("posts") & Key("timestamp").eq(Decimal(postid)),
+            "KeyConditionExpression": Key("posts").eq("posts") &
+                                        Key("timestamp").eq(Decimal(postid)),
         }
-
-        if args.get("offset"):
-            params["ExclusiveStartKey"] = {
-                "posts":"posts",
-                "timestamp": Decimal(offset)
-            }
 
         r = dynamo.query(**params)
 
         if r.get("ResponseMetadata", {}).get("HTTPStatusCode", 500) == 500:
-            data = {'errors': [{'title': 'could not communicate with DynamoDB'}]}
+            data = {'errors':
+                    [{'title': 'could not communicate with DynamoDB'}]}
             return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
         posts = r.get("Items")
@@ -122,7 +127,8 @@ class SingleSocialContent(flask_restful.Resource):
         for item in posts:
             item['id'] = str(item.get("timestamp"))
             item['poster_name'] = "Lookup Name Result"
-            item['poster_icon'] = "http://calligre-profilepics.s3-website-us-west-2.amazonaws.com/profilepic-1.jpg"
+            item['poster_icon'] =
+                "http://calligre-profilepics.s3-website-us-west-2.amazonaws.com/profilepic-1.jpg"
             item['current_user_likes'] = True
 
         nextOffset = r.get("LastEvaluatedKey", {}).get("timestamp")
@@ -132,7 +138,7 @@ class SingleSocialContent(flask_restful.Resource):
         body = {
             "posts": posts,
             "count": r.get("Count", 0),
-            "nextOffset" : nextOffset
+            "nextOffset": nextOffset
         }
 
         if r.get("Count", 0) == 0:
@@ -142,6 +148,8 @@ class SingleSocialContent(flask_restful.Resource):
 
     def delete(self, postid):
         pass
+
+
 class SingleSocialContentLikes(flask_restful.Resource):
     def delete(self, postid):
         pass
