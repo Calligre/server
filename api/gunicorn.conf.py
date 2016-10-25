@@ -8,8 +8,8 @@ pidfile = 'api.pid'
 
 workers = threads = 2 * multiprocessing.cpu_count() + 1
 
-access_logfile = 'api.access.log'
-error_logfile = 'api.error.log'
+accesslog = 'api.access.log'
+errorlog = 'api.error.log'
 
 # require these to be set in production
 _ = os.environ['DB_BASE']
