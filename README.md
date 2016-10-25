@@ -30,7 +30,9 @@ Config for nginx proxy.
     docker run -d --net=host -v ${ATTENDEE_WWW_DIR}:/www -v ${SSL_DIR}:/ssl nginx-proxy
 
 Note that `ATTENDEE_WWW_DIR` should point to the build directory of
-[attendee-web](https://github.com/calligre/attendee-web). For example, in prod
-this is
+[attendee-web](https://github.com/calligre/attendee-web) and `SSL_DIR` should
+point to the cert folder for the correct subdomain. For example, in prod the
+values might be
 
     export ATTENDEE_WWW_DIR=/home/ec2-user/attendee-web/build
+    export SSL_DIR=/home/ec2-user/lets-encrypt-certs/certs/dev.calligre.com
