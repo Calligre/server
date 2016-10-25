@@ -27,7 +27,7 @@ Config for nginx proxy.
 ### Usage
 
     docker build -t nginx-proxy proxy/
-    docker run -d --net=host -v ${ATTENDEE_WWW_DIR}:/www nginx-proxy
+    docker run -d --net=host -v ${ATTENDEE_WWW_DIR}:/www -v ${SSL_DIR}:/ssl nginx-proxy
 
 Note that `ATTENDEE_WWW_DIR` should point to the build directory of
 [attendee-web](https://github.com/calligre/attendee-web). For example, in prod
