@@ -20,3 +20,17 @@ Config for the Postgres database used by the non-social API.
 
     psql -f database/structure.sql  # migrate database
     psql -f database/dummy.sql      # insert dummy data for testing
+
+## [Proxy](proxy/)
+Config for nginx proxy.
+
+### Usage
+
+    docker build -t nginx-proxy proxy/
+    docker run -d --net=host -v ${ATTENDEE_WWW_DIR}:/www nginx-proxy
+
+Note that `ATTENDEE_WWW_DIR` should point to the build directory of
+[attendee-web](https://github.com/calligre/attendee-web). For example, in prod
+this is
+
+    export ATTENDEE_WWW_DIR=/home/ec2-user/attendee-web/build
