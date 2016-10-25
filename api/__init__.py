@@ -63,10 +63,17 @@ def spec():
 
 
 @app.route('/api/me')
-@api.auth.requires_auth
 def me():
-    user = str(current_user)
-    return flask.jsonify(user), flask_api.status.HTTP_200_OK
+    # This needs to be wrapped twice since flask-restful auto-encodes the
+    # response as json. `api.auth.requires_auth`, then, must return a Python
+    # object.
+    @api.auth.requires_auth
+    def get_current_user():
+        user = str(current_user)
+        return user, flask_api.status.HTTP_200_OK
+
+    data, code = get_current_user()
+    return flask.jsonify(data), code
 
 
 @app.route('/api/ping')

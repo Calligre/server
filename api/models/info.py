@@ -3,20 +3,24 @@ import flask_api
 import flask_restful
 import flask_restful.reqparse
 
+from api.auth import requires_auth
 from api.database import delete, get, patch, post
 
 
 class Info(flask_restful.Resource):
+    @requires_auth
     def delete(self):
         return delete('info',
                       'DELETE FROM info WHERE id = %(iid)s',
                       {'iid': 1})
 
+    @requires_auth
     def get(self):
         return get('info',
                    'SELECT * FROM info WHERE id = %(iid)s',
                    {'iid': 1})
 
+    @requires_auth
     def patch(self):
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('name', type=str, location='json', default=None)
@@ -53,6 +57,7 @@ class Info(flask_restful.Resource):
                          WHERE id = %(id)s """,
                      item)
 
+    @requires_auth
     def post(self):
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('name', type=str, location='json', required=True)
