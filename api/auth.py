@@ -13,8 +13,6 @@ AUTH0_SECRET_ID = os.environ.get('AUTH0_SECRET_ID', '')
 
 
 def requires_auth(function):
-    # TODO: we should clean this up, but for now its mostly copied from the
-    # Auth0 sample page
     # pylint: disable=too-many-return-statements
     @functools.wraps(function)
     def decorated(*args, **kwargs):
