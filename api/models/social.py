@@ -1,48 +1,56 @@
 # pylint: disable=R0201
+import time
 import random
 import string
+import logging as log
 from decimal import Decimal
 
 import boto3
-from boto3.dynamodb.conditions import Key
 
+from boto3.dynamodb.conditions import Attr, Key, Not
 import flask_api
 import flask_restful
 import flask_restful.reqparse
 
-from api.database import delete, get, gets, patch, post
+from api import database, dynamo
 
 
-# TODO: parameterize
 MAX_POSTS = 25
 
-dynamo_boto = boto3.Session(profile_name="dynamo")
-dynamo = dynamo_boto.resource('dynamodb', region_name="us-west-2")
-                    .Table("calligre-posts")
+
+def format_post_response(posts):
+    # FIXME: Lookup name & profile pic location for each poster
+    for item in posts:
+        item["timestamp"] = str(item.get("timestamp"))
+        item["id"] = item["timestamp"]
+        item["poster_name"] = "Lookup Name Result"
+        item["poster_icon"] = \
+            "http://calligre-profilepics.s3-website-us-west-2.amazonaws.com/profilepic-1.jpg"
+        item["current_user_likes"] = True
+        item["like_count"] = str(item.get("like_count"))
+    return posts
 
 
 class SocialContentList(flask_restful.Resource):
     def get(self):
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('offset', type=float, location='args', required=False)
-        req.add_argument('limit', type=int, location='args', required=False)
+        req.add_argument('limit', type=int, location='args', required=False,
+                         default=MAX_POSTS)
         args = req.parse_args()
 
-        limit = args.get("limit", MAX_POSTS)
-        limit = min(limit, MAX_POSTS)
+        limit = min(args.get("limit", MAX_POSTS), MAX_POSTS)
 
-        proj = "#ts,poster_id,#txt,media_link,like_count"
-        reservedWords = {
-            "#ts": "timestamp",
-            "#txt": "text"
-        }
         params = {
             "Limit": limit,
             "ScanIndexForward": False,
-            "ProjectionExpression": proj,
-            "ExpressionAttributeNames": reservedWords,
-            "KeyConditionExpression": Key("posts").eq("posts") &
-                                        Key("timestamp").gt(Decimal(0)),
+            "ProjectionExpression": "#ts,poster_id,#txt,media_link,like_count",
+            "ExpressionAttributeNames": {
+                "#ts": "timestamp",
+                "#txt": "text"
+            },
+            "KeyConditionExpression":
+            Key("posts").eq("posts") & Key("timestamp").gt(Decimal(0)),
         }
 
         if args.get("offset"):
@@ -51,27 +59,16 @@ class SocialContentList(flask_restful.Resource):
                 "timestamp": Decimal(args.get("offset"))
             }
 
-        r = dynamo.query(**params)
+        r, status = dynamo.get(params)
 
-        posts = r.get("Items")
-        # Build our details
-        for item in posts:
-            item['id'] = str(item.get("timestamp"))
-            item['poster_name'] = "Lookup Name Result"
-            item['poster_icon'] =
-                "http://calligre-profilepics.s3-website-us-west-2.amazonaws.com/profilepic-1.jpg"
-            item['current_user_likes'] = True
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        posts = format_post_response(r.get("Items", []))
 
         nextOffset = r.get("LastEvaluatedKey", {}).get("timestamp")
         if nextOffset is not None:
             nextOffset = str(nextOffset)
-
-        status = r.get("ResponseMetadata", {}).get("HTTPStatusCode", 500)
-
-        if status == 500:
-            data = {'errors':
-                    [{'title': 'could not communicate with DynamoDB'}]}
-            return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
         body = {
             "posts": posts,
@@ -79,13 +76,41 @@ class SocialContentList(flask_restful.Resource):
             "nextOffset": nextOffset
         }
 
-        if r.get("Count", 0) == 0:
-            return body, flask_api.status.HTTP_404_NOT_FOUND
-        else:
-            return body, flask_api.status.HTTP_200_OK
+        return {"data": body}, flask_api.status.HTTP_200_OK
 
     def post(self):
-        pass
+        req = flask_restful.reqparse.RequestParser()
+        req.add_argument('text', type=str, location='json', default=None,
+                         required=True)
+        req.add_argument('media_link', type=str, location='json', default=None)
+        req.add_argument('post_fb', type=bool, location='json', default=False)
+        req.add_argument('post_tw', type=bool, location='json', default=False)
+        args = req.parse_args()
+
+        if not (args.get("text") or args.get("media_link")):
+            return {"errors": [{
+                "title": "You must provide either text or a media URL."}]}, \
+                flask_api.status.HTTP_400_BAD_REQUEST
+
+        timestamp = Decimal(time.time())
+        params = {
+            "Item": {
+                "posts": "posts",
+                "timestamp": timestamp,
+                "poster_id": "temp id",
+                "like_count": 0,
+                "text": args.get("text"),
+                "media_link": args.get("media_link")
+            },
+            "ConditionExpression": Attr("timestamp").ne(timestamp)
+        }
+
+        r, status = dynamo.put(params)
+
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        return {"data": {"id": str(timestamp)}}, flask_api.status.HTTP_200_OK
 
 
 class SocialContentUploadURL(flask_restful.Resource):
@@ -101,61 +126,121 @@ class SocialContentUploadURL(flask_restful.Resource):
 
 class SingleSocialContent(flask_restful.Resource):
     def get(self, postid):
-        proj = "#ts,poster_id,#txt,media_link,like_count"
-        reservedWords = {
-            "#ts": "timestamp",
-            "#txt": "text"
-        }
         params = {
             "Limit": 1,
             "ScanIndexForward": False,
-            "ProjectionExpression": proj,
-            "ExpressionAttributeNames": reservedWords,
-            "KeyConditionExpression": Key("posts").eq("posts") &
-                                        Key("timestamp").eq(Decimal(postid)),
+            "ProjectionExpression": "#ts,poster_id,#txt,media_link,like_count",
+            "ExpressionAttributeNames": {
+                "#ts": "timestamp",
+                "#txt": "text"
+            },
+            "KeyConditionExpression":
+            Key("posts").eq("posts") & Key("timestamp").eq(Decimal(postid)),
         }
 
-        r = dynamo.query(**params)
+        r, status = dynamo.get_single(params)
 
-        if r.get("ResponseMetadata", {}).get("HTTPStatusCode", 500) == 500:
-            data = {'errors':
-                    [{'title': 'could not communicate with DynamoDB'}]}
-            return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
+        if not flask_api.status.is_success(status):
+            return r, status
 
-        posts = r.get("Items")
-        # Build our details
-        for item in posts:
-            item['id'] = str(item.get("timestamp"))
-            item['poster_name'] = "Lookup Name Result"
-            item['poster_icon'] =
-                "http://calligre-profilepics.s3-website-us-west-2.amazonaws.com/profilepic-1.jpg"
-            item['current_user_likes'] = True
-
-        nextOffset = r.get("LastEvaluatedKey", {}).get("timestamp")
-        if nextOffset is not None:
-            nextOffset = str(nextOffset)
+        posts = format_post_response(r)
 
         body = {
             "posts": posts,
-            "count": r.get("Count", 0),
-            "nextOffset": nextOffset
+            "count": 1,
         }
 
-        if r.get("Count", 0) == 0:
-            return body, flask_api.status.HTTP_404_NOT_FOUND
-        else:
-            return body, flask_api.status.HTTP_200_OK
+        return {"data": body}, flask_api.status.HTTP_200_OK
 
     def delete(self, postid):
-        pass
+        # FIXME
+        userid = "temp id"
+
+        postid = Decimal(postid)
+        params = {
+            "ProjectionExpression": "poster_id",
+            "KeyConditionExpression": Key("posts").eq("posts") &
+            Key("timestamp").eq(postid),
+        }
+
+        r, status = dynamo.get_single(params)
+
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        if r[0].get("poster_id") != userid:
+            return {"errors": [
+                {"title":
+                 "The post you are trying to delete isn't owned by you."}
+                ]},\
+                flask_api.status.HTTP_403_FORBIDDEN
+
+        params = {
+            "Key": {
+                "posts": "posts",
+                "timestamp": postid,
+            },
+            "ConditionExpression": Attr("poster_id").eq(userid),
+            "ReturnItemCollectionMetrics": "SIZE"
+        }
+
+        return dynamo.delete(params)
 
 
 class SingleSocialContentLikes(flask_restful.Resource):
     def delete(self, postid):
-        pass
+        # FIXME
+        userid = "test"
+        params = {
+            "Key": {
+                "posts": "posts",
+                "timestamp": Decimal(postid),
+            },
+            "UpdateExpression":
+            "DELETE likes :like SET like_count = like_count - :1",
+            "ExpressionAttributeValues": {
+                ':like': set([userid]),
+                ':1': 1
+            },
+            "ConditionExpression": Attr("likes").contains(userid)
+        }
+        return dynamo.patch(params)
 
     def get(self, postid):
-        pass
+        params = {
+            "ProjectionExpression": "likers",
+            "KeyConditionExpression":
+            Key("posts").eq("posts") & Key("timestamp").eq(Decimal(postid)),
+        }
+
+        r, status = dynamo.get_single(params)
+
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        liker_ids = r[0].get("likers", [])
+        # FIXME: SQL lookup: select id, name from users where id in liker_ids
+        likers = {
+            "temp id": "Testing User 1",
+            "temp id 2": "Testing User 2"
+        }
+
+        return {"data": likers}, flask_api.status.HTTP_200_OK
 
     def post(self, postid):
-        pass
+        # FIXME
+        userid = "test id"
+        params = {
+            "Key": {
+                "posts": "posts",
+                "timestamp": Decimal(postid),
+            },
+            "UpdateExpression":
+            "ADD likes :like SET like_count = like_count + :1",
+            "ExpressionAttributeValues": {
+                ':like': set([userid]),
+                ':1': 1
+            },
+            "ConditionExpression": Not(Attr("likes").contains(userid))
+        }
+        return dynamo.put(params)
