@@ -45,9 +45,9 @@ restful.add_resource(api.models.user.UserPhoto, '/user/<uid>/photo')
 restful.add_resource(api.models.social.SocialContentList, '/social')
 restful.add_resource(api.models.social.SocialContentUploadURL,
                      '/social/get_upload_url')
-restful.add_resource(api.models.social.SingleSocialContent, '/social/<pid>')
+restful.add_resource(api.models.social.SingleSocialContent, '/social/<postid>')
 restful.add_resource(api.models.social.SingleSocialContentLikes,
-                     '/social/<pid>/likes')
+                     '/social/<postid>/likes')
 
 current_user = werkzeug.local.LocalProxy(
     lambda: _request_ctx_stack.top.current_user)
