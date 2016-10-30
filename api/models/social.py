@@ -197,8 +197,8 @@ class SingleSocialContent(flask_restful.Resource):
         postid = Decimal(postid)
         params = {
             "ProjectionExpression": "poster_id",
-            "KeyConditionExpression": Key("posts").eq("posts") &
-                                      Key("timestamp").eq(postid),
+            "KeyConditionExpression":
+            Key("posts").eq("posts") & Key("timestamp").eq(postid),
         }
 
         r, status = dynamo.get_single(params)
