@@ -64,7 +64,7 @@ def gets(resource, query, params=None):
     try:
         with db.cursor() as cursor:
             cursor.execute(query, params)
-            columns = [d[0] for d in cursor.description]
+            columns = [d['name'] for d in cursor.description]
             records = cursor.fetchall()
     except Exception:
         traceback.print_exc()
