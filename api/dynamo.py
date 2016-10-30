@@ -1,11 +1,14 @@
 import logging as log
+import os
 
 import boto3
 import flask_api
 
-DYNAMO_BOTO = boto3.Session(profile_name="dynamo")
-dynamo = DYNAMO_BOTO.resource('dynamodb', region_name="us-west-2")\
-    .Table("calligre-posts")
+DYNAMO_TABLE = os.environ.get('DYNAMO_TABLE', "calligre-posts")
+DYNAMO_REGION = os.environ.get("DYNAMO_REGION", "us-west-2")
+dynamo_boto = boto3.Session(profile_name="dynamo")
+dynamo = dynamo_boto.resource('dynamodb', region_name=DYNAMO_REGION)\
+    .Table(DYNAMO_TABLE)
 
 
 def inspect_return(r):
