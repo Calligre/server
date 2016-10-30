@@ -3,7 +3,6 @@ import time
 import random
 import string
 import os
-import logging as log
 from decimal import Decimal
 
 import boto3
@@ -21,15 +20,16 @@ PROFILE_PIC_BCKT = os.environ.get("PROFILE_PIC_BUCKET", "calligre-profilepics")
 
 
 def map_id_to_names(uids):
-    uid_str = ",".join(uids)
-    print(uid_str)
     r, _ = database.gets("user",
-                         "SELECT first_name, last_name FROM account \
-                          WHERE id IN (%s)",
-                         uid_str)
-    print(r.get("data"))
-    return {"temp id": "Test User Lookup",
-            "temp id 2": "Test User Lookup 2"}
+                         "SELECT id, first_name, last_name FROM account \
+                          WHERE id = ANY(%(uids)s);",
+                         {"uids": uids})
+    mapping = dict()
+    for row in r.get("data"):
+        attrs = row.get("attributes")
+        mapping[attrs.get("id")] = " ".join((attrs.get("first_name"),
+                                             attrs.get("last_name")))
+    return mapping
 
 
 def format_post_response(posts, userid):
@@ -45,7 +45,6 @@ def format_post_response(posts, userid):
         item["current_user_likes"] = (userid in item.get("likes", []))
         item["like_count"] = str(item.get("like_count"))
         item.pop("likes", None)
-    log.error(posts)
     return posts
 
 
