@@ -14,7 +14,7 @@ dynamo = dynamo_boto.resource('dynamodb', region_name=DYNAMO_REGION)\
 def inspect_return(r):
     status = r.get("ResponseMetadata", {}).get("HTTPStatusCode", 500)
     if not flask_api.status.is_success(status):
-        log.error("Dynamo return != 2xx; wasn't exception: {}".format(status))
+        log.error("Dynamo return != 2xx; wasn't exception: %d", status)
         log.error(r)
         r = {"errors": [{"title": "Internal Error", "detail": status}]}
     return r, status
@@ -64,7 +64,7 @@ def patch(params):
         r = dynamo.update_item(**params)
         return inspect_return(r)
     except Exception as e:
-        # FIXME： fine grained exception here: ConditionalCheckFailedException
+        # FIXME: fine grained exception here: ConditionalCheckFailedException
         return inspect_error(e)
 
 
