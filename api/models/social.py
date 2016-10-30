@@ -162,6 +162,8 @@ class SocialContentUploadURL(flask_restful.Resource):
 
 class SingleSocialContent(flask_restful.Resource):
     def get(self, postid):
+        # FIXME
+        userid = "2"
         params = {
             "Limit": 1,
             "ScanIndexForward": False,
@@ -179,7 +181,7 @@ class SingleSocialContent(flask_restful.Resource):
         if not flask_api.status.is_success(status):
             return r, status
 
-        posts = format_post_response(r)
+        posts = format_post_response(r, userid)
 
         body = {
             "posts": posts,
