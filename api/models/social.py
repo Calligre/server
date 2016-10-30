@@ -2,6 +2,7 @@
 import time
 import random
 import string
+import os
 import logging as log
 from decimal import Decimal
 
@@ -16,23 +17,55 @@ from api import database, dynamo
 
 
 MAX_POSTS = 25
+PROFILE_PIC_BCKT = os.environ.get("PROFILE_PIC_BUCKET", "calligre-profilepics")
 
 
-def format_post_response(posts):
+def map_id_to_names(uids):
+    uid_str = ",".join(uids)
+    print(uid_str)
+    # r, _ = database.gets("user",
+    #                      "SELECT first_name, last_name FROM account \
+    #                       WHERE id IN (%s)",
+    #                      uid_str)
+    # print(r.get("data"))
+    return {"temp id": "Test User Lookup",
+            "temp id 2": "Test User Lookup 2"}
+
+
+def format_post_response(posts, userid):
     # FIXME: Lookup name & profile pic location for each poster
+    uids = [item["poster_id"] for item in posts]
+    uid_mapping = map_id_to_names(uids)
     for item in posts:
         item["timestamp"] = str(item.get("timestamp"))
         item["id"] = item["timestamp"]
-        item["poster_name"] = "Lookup Name Result"
-        item["poster_icon"] = \
-            "http://calligre-profilepics.s3-website-us-west-2.amazonaws.com/profilepic-1.jpg"
-        item["current_user_likes"] = True
+        item["poster_name"] = uid_mapping.get(item["poster_id"], "Random User")
+        item["poster_icon"] = "https://{}.s3.amazonaws.com/profilepic-{}.jpg".\
+            format(PROFILE_PIC_BCKT, item["poster_id"])
+        item["current_user_likes"] = (userid in item.get("likes", []))
         item["like_count"] = str(item.get("like_count"))
+        item.pop("likes", None)
+    log.error(posts)
     return posts
+
+
+def increment_points(userid):
+    log.info("Would increment")
+    # database.patch("user",
+    #                "UPDATE account SET points = points + 1 where id = %(id)s",
+    #                {"id": userid})
+
+
+def decrement_points(userid):
+    log.info("Would decrement")
+    # database.patch("user",
+    #                "UPDATE account SET points = points - 1 where id = %(id)s",
+    #                {"id": userid})
 
 
 class SocialContentList(flask_restful.Resource):
     def get(self):
+        userid = "temp id"
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('offset', type=float, location='args', required=False)
         req.add_argument('limit', type=int, location='args', required=False,
@@ -44,7 +77,8 @@ class SocialContentList(flask_restful.Resource):
         params = {
             "Limit": limit,
             "ScanIndexForward": False,
-            "ProjectionExpression": "#ts,poster_id,#txt,media_link,like_count",
+            "ProjectionExpression":
+            "#ts,poster_id,#txt,media_link,like_count,likes",
             "ExpressionAttributeNames": {
                 "#ts": "timestamp",
                 "#txt": "text"
@@ -64,7 +98,7 @@ class SocialContentList(flask_restful.Resource):
         if not flask_api.status.is_success(status):
             return r, status
 
-        posts = format_post_response(r.get("Items", []))
+        posts = format_post_response(r.get("Items", []), userid)
 
         nextOffset = r.get("LastEvaluatedKey", {}).get("timestamp")
         if nextOffset is not None:
@@ -79,6 +113,7 @@ class SocialContentList(flask_restful.Resource):
         return {"data": body}, flask_api.status.HTTP_200_OK
 
     def post(self):
+        userid = "test user"
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('text', type=str, location='json', default=None,
                          required=True)
@@ -110,6 +145,7 @@ class SocialContentList(flask_restful.Resource):
         if not flask_api.status.is_success(status):
             return r, status
 
+        increment_points(userid)
         return {"data": {"id": str(timestamp)}}, flask_api.status.HTTP_200_OK
 
 
@@ -184,6 +220,8 @@ class SingleSocialContent(flask_restful.Resource):
             "ReturnItemCollectionMetrics": "SIZE"
         }
 
+        decrement_points(userid)
+
         return dynamo.delete(params)
 
 
@@ -204,6 +242,9 @@ class SingleSocialContentLikes(flask_restful.Resource):
             },
             "ConditionExpression": Attr("likes").contains(userid)
         }
+
+        decrement_points(userid)
+
         return dynamo.patch(params)
 
     def get(self, postid):
@@ -219,11 +260,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
             return r, status
 
         liker_ids = r[0].get("likers", [])
-        # FIXME: SQL lookup: select id, name from users where id in liker_ids
-        likers = {
-            "temp id": "Testing User 1",
-            "temp id 2": "Testing User 2"
-        }
+        likers = map_id_to_names(liker_ids)
 
         return {"data": likers}, flask_api.status.HTTP_200_OK
 
@@ -243,4 +280,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
             },
             "ConditionExpression": Not(Attr("likes").contains(userid))
         }
+
+        increment_points(userid)
+
         return dynamo.put(params)
