@@ -124,6 +124,8 @@ class SocialContentList(flask_restful.Resource):
                 "title": "You must provide either text or a media URL."}]}, \
                 flask_api.status.HTTP_400_BAD_REQUEST
 
+        # FIXME: URL mashing to detect the resize bucket usage & change to
+        # point at the non-resized bucket
         timestamp = Decimal(time.time())
         params = {
             "Item": {
@@ -142,6 +144,7 @@ class SocialContentList(flask_restful.Resource):
         if not flask_api.status.is_success(status):
             return r, status
 
+        # FIXME: Trigger FB & Twitter Posting Lambdas
         increment_points(userid)
         return {"data": {"id": str(timestamp)}}, flask_api.status.HTTP_200_OK
 
