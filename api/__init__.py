@@ -10,9 +10,9 @@ import api.auth
 import api.models.broadcast
 import api.models.event
 import api.models.info
+import api.models.social
 import api.models.subscription
 import api.models.user
-import api.models.social
 
 
 SECRET_KEY = os.environ.get('SECRET_KEY', '[not-a-s3cr3t]')

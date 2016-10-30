@@ -21,8 +21,8 @@ PROFILE_PIC_BCKT = os.environ.get("PROFILE_PIC_BUCKET", "calligre-profilepics")
 
 def map_id_to_names(uids):
     r, _ = database.gets("user",
-                         "SELECT id, first_name, last_name FROM account \
-                          WHERE id = ANY(%(uids)s);",
+                         """SELECT id, first_name, last_name FROM account
+                          WHERE id = ANY(%(uids)s);""",
                          {"uids": uids})
     mapping = dict()
     for row in r.get("data"):
@@ -42,7 +42,7 @@ def format_post_response(posts, userid):
         item["poster_name"] = uid_mapping.get(item["poster_id"], "Random User")
         item["poster_icon"] = "https://{}.s3.amazonaws.com/profilepic-{}.jpg".\
             format(PROFILE_PIC_BCKT, item["poster_id"])
-        item["current_user_likes"] = (userid in item.get("likes", []))
+        item["current_user_likes"] = userid in item.get("likes", [])
         item["like_count"] = str(item.get("like_count"))
         item.pop("likes", None)
     return posts
@@ -62,6 +62,7 @@ def decrement_points(userid):
 
 class SocialContentList(flask_restful.Resource):
     def get(self):
+        # FIXME: Use userid from jwt token
         userid = "temp id"
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('offset', type=float, location='args', required=False)
@@ -75,7 +76,7 @@ class SocialContentList(flask_restful.Resource):
             "Limit": limit,
             "ScanIndexForward": False,
             "ProjectionExpression":
-            "#ts,poster_id,#txt,media_link,like_count,likes",
+                "#ts,poster_id,#txt,media_link,like_count,likes",
             "ExpressionAttributeNames": {
                 "#ts": "timestamp",
                 "#txt": "text"
@@ -98,7 +99,7 @@ class SocialContentList(flask_restful.Resource):
         posts = format_post_response(r.get("Items", []), userid)
 
         nextOffset = r.get("LastEvaluatedKey", {}).get("timestamp")
-        if nextOffset is not None:
+        if nextOffset:
             nextOffset = str(nextOffset)
 
         body = {
@@ -110,6 +111,7 @@ class SocialContentList(flask_restful.Resource):
         return {"data": body}, flask_api.status.HTTP_200_OK
 
     def post(self):
+        # FIXME: Use userid from jwt token
         userid = "test user"
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('text', type=str, location='json', default=None,
@@ -162,7 +164,7 @@ class SocialContentUploadURL(flask_restful.Resource):
 
 class SingleSocialContent(flask_restful.Resource):
     def get(self, postid):
-        # FIXME
+        # FIXME: Use userid from jwt token
         userid = "2"
         params = {
             "Limit": 1,
@@ -191,7 +193,7 @@ class SingleSocialContent(flask_restful.Resource):
         return {"data": body}, flask_api.status.HTTP_200_OK
 
     def delete(self, postid):
-        # FIXME
+        # FIXME: Use userid from jwt token
         userid = "temp id"
 
         postid = Decimal(postid)
@@ -229,7 +231,7 @@ class SingleSocialContent(flask_restful.Resource):
 
 class SingleSocialContentLikes(flask_restful.Resource):
     def delete(self, postid):
-        # FIXME
+        # FIXME: Use userid from jwt token
         userid = "test"
         params = {
             "Key": {
@@ -267,7 +269,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
         return {"data": likers}, flask_api.status.HTTP_200_OK
 
     def post(self, postid):
-        # FIXME
+        # FIXME: Use userid from jwt token
         userid = "test id"
         params = {
             "Key": {
