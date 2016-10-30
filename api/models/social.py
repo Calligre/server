@@ -23,19 +23,19 @@ PROFILE_PIC_BCKT = os.environ.get("PROFILE_PIC_BUCKET", "calligre-profilepics")
 def map_id_to_names(uids):
     uid_str = ",".join(uids)
     print(uid_str)
-    # r, _ = database.gets("user",
-    #                      "SELECT first_name, last_name FROM account \
-    #                       WHERE id IN (%s)",
-    #                      uid_str)
-    # print(r.get("data"))
+    r, _ = database.gets("user",
+                         "SELECT first_name, last_name FROM account \
+                          WHERE id IN (%s)",
+                         uid_str)
+    print(r.get("data"))
     return {"temp id": "Test User Lookup",
             "temp id 2": "Test User Lookup 2"}
 
 
 def format_post_response(posts, userid):
-    # FIXME: Lookup name & profile pic location for each poster
     uids = [item["poster_id"] for item in posts]
     uid_mapping = map_id_to_names(uids)
+
     for item in posts:
         item["timestamp"] = str(item.get("timestamp"))
         item["id"] = item["timestamp"]
@@ -50,17 +50,15 @@ def format_post_response(posts, userid):
 
 
 def increment_points(userid):
-    log.info("Would increment")
-    # database.patch("user",
-    #                "UPDATE account SET points = points + 1 where id = %(id)s",
-    #                {"id": userid})
+    database.patch("user",
+                   "UPDATE account SET points = points + 1 where id = %(id)s",
+                   {"id": userid})
 
 
 def decrement_points(userid):
-    log.info("Would decrement")
-    # database.patch("user",
-    #                "UPDATE account SET points = points - 1 where id = %(id)s",
-    #                {"id": userid})
+    database.patch("user",
+                   "UPDATE account SET points = points - 1 where id = %(id)s",
+                   {"id": userid})
 
 
 class SocialContentList(flask_restful.Resource):
