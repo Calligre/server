@@ -1,8 +1,9 @@
 # pylint: disable=R0201
-import time
+import logging
+import os
 import random
 import string
-import os
+import time
 from decimal import Decimal
 
 import boto3
@@ -14,9 +15,12 @@ import flask_restful.reqparse
 
 from api import database, dynamo
 
+log = logging.getLogger()
+log.setLevel(logging.INFO)
 
 MAX_POSTS = 25
 PROFILE_PIC_BCKT = os.environ.get("PROFILE_PIC_BUCKET", "calligre-profilepics")
+EXT_POSTS_TOPIC = "arn:aws:sns:us-west-2:037954390517:calligre-external-posts"
 
 
 def map_id_to_names(uids):
@@ -114,8 +118,7 @@ class SocialContentList(flask_restful.Resource):
         # FIXME: Use userid from jwt token
         userid = "test user"
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('text', type=str, location='json', default=None,
-                         required=True)
+        req.add_argument('text', type=str, location='json', default=None)
         req.add_argument('media_link', type=str, location='json', default=None)
         req.add_argument('post_fb', type=bool, location='json', default=False)
         req.add_argument('post_tw', type=bool, location='json', default=False)
@@ -128,27 +131,79 @@ class SocialContentList(flask_restful.Resource):
 
         # FIXME: URL mashing to detect the resize bucket usage & change to
         # point at the non-resized bucket
+        # url parse & matching host?
         timestamp = Decimal(time.time())
         params = {
             "Item": {
                 "posts": "posts",
                 "timestamp": timestamp,
                 "poster_id": "temp id",
-                "like_count": 0,
-                "text": args.get("text"),
-                "media_link": args.get("media_link")
+                "like_count": 0
             },
             "ConditionExpression": Attr("timestamp").ne(timestamp)
         }
+        if args.get("text"):
+            params["Item"]["text"] = args.get("text")
+
+        if args.get("media_link"):
+            params["Item"]["media_link"] = args.get("media_link")
 
         r, status = dynamo.put(params)
 
         if not flask_api.status.is_success(status):
             return r, status
 
-        # FIXME: Trigger FB & Twitter Posting Lambdas
+        if args.get("post_fb") or args.get("post_tw"):
+            self.external_post(userid,
+                               args.get("text"),
+                               args.get("media_link"),
+                               args.get("post_fb"),
+                               args.get("post_tw"))
         increment_points(userid)
+
         return {"data": {"id": str(timestamp)}}, flask_api.status.HTTP_200_OK
+
+    @staticmethod
+    def external_post(userid, message, media_s3, fb, tw):
+        # FIXME: Use actual userid
+        userid = "facebook|10207943757254134"
+        params = {
+            "TopicArn": EXT_POSTS_TOPIC,
+            "Message": message,
+            "MessageStructure": "string",
+            "MessageAttributes": {
+                "userid": {
+                    "DataType": "String",
+                    "StringValue": userid
+                },
+                "facebook": {
+                    "DataType": "String",
+                    "StringValue": str(fb)
+                },
+                "twitter": {
+                    "DataType": "String",
+                    "StringValue": str(tw)
+                },
+            }
+        }
+
+        if media_s3:
+            params["MessageAttributes"]["media_s3"] = {
+                "DataType": "String",
+                "StringValue": media_s3
+            }
+
+        log.debug("%s saying '%s', with media %s", userid, message, media_s3)
+        log.debug("Posting to FB: %s; posting to Twitter: %s", fb, tw)
+
+        try:
+            sns_boto = boto3.Session(profile_name="sns")
+            client = sns_boto.client("sns")
+            response = client.publish(**params)
+            log.debug("Message sent: %s", response.get("MessageId"))
+        except Exception as e:
+            log.error("Failed to publish message to SNS!")
+            log.error(e)
 
 
 class SocialContentUploadURL(flask_restful.Resource):

@@ -1,4 +1,4 @@
-import logging as log
+import logging
 import os
 
 import boto3
@@ -9,6 +9,8 @@ DYNAMO_REGION = os.environ.get("DYNAMO_REGION", "us-west-2")
 dynamo_boto = boto3.Session(profile_name="dynamo")
 dynamo = dynamo_boto.resource('dynamodb', region_name=DYNAMO_REGION)\
     .Table(DYNAMO_TABLE)
+log = logging.getLogger()
+log.setLevel(logging.INFO)
 
 
 def inspect_return(response):
