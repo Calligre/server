@@ -17,3 +17,6 @@ _ = os.environ['DB_HOST']
 _ = os.environ['DB_PASS']
 _ = os.environ['DB_PORT']
 _ = os.environ['DB_USER']
+
+_ = os.environ['AUTH0_CLIENT_ID']
+_ = os.environ['AUTH0_SECRET_ID']

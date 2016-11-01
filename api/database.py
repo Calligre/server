@@ -43,15 +43,16 @@ def get(resource, query, params):
             cursor.execute(query, params)
             columns = [d[0] for d in cursor.description]
             record = cursor.fetchone()
-    except IndexError:
-        data = {'errors': [{'title': 'no record found'}]}
-        return data, flask_api.status.HTTP_404_NOT_FOUND
     except Exception:
         traceback.print_exc()
         data = {'errors': [{
             'title': 'database error',
             'detail': 'could not get record'}]}
         return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    if not record:
+        data = {'errors': [{'title': 'no record found'}]}
+        return data, flask_api.status.HTTP_404_NOT_FOUND
 
     item = dict(zip(columns, record))
     data = {'data': {'type': resource, 'id': item['id'], 'attributes': item}}
