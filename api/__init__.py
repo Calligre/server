@@ -19,6 +19,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '[not-a-s3cr3t]')
 
 app = flask.Flask(__name__)
 app.secret_key = SECRET_KEY
+app.url_map.strict_slashes = False
 
 restful = flask_restful.Api(app, prefix='/api')
 restful.add_resource(api.models.broadcast.Broadcast, '/broadcast/<int:bid>')
