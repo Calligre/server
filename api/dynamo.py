@@ -18,21 +18,25 @@ def inspect_return(response):
     if not flask_api.status.is_success(status):
         log.error("Dynamo return != 2xx; wasn't exception: %d", status)
         log.error(response)
-        response = {"errors": [{"title": "Internal Error", "detail": status}]}
+        response = {"errors": [{"title": "internal error",
+                                "status": "%s" % status,
+                                "detail": "Dynamo non-exceptional error"}]}
     return response, status
 
 
 def inspect_error(e):
-    log.error(e)
+    log.exception(e)
     if not hasattr(e, "response") or not e.response.get("Error"):
-        return {"errors": [{"title": "Internal Error"}]}, \
+        return {"errors": [{"title": "internal error",
+                            "detail": "No Dynamo response"}]}, \
             flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
     if e.response.get("Error").get("Code") == \
             "ConditionalCheckFailedException":
-        return {"data": "No changes"}, \
+        return {"data": None}, \
             flask_api.status.HTTP_304_NOT_MODIFIED
     return {"errors": [{
-        "title": e.response.get("Error", {}).get("Code"),
+        "title": "internal error",
+        "code": e.response.get("Error", {}).get("Code"),
         "detail": e.response.get("Error", {}).get("Message")
         }]}, \
         flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -54,10 +58,10 @@ def get_single(params):
 
     if response.get("Count", 0) != 1:
         return {"errors": [
-            {"title": "The post you are trying to access doesn't exist."}]},\
+            {"title": "no record found"}]},\
             flask_api.status.HTTP_404_NOT_FOUND
 
-    return response.get("Items"), status
+    return response.get("Items", {}), status
 
 
 def patch(params):
@@ -81,6 +85,6 @@ def delete(params):
         response = dynamo.delete_item(**params)
         response, status = inspect_return(response)
         if status == 200:
-            return None, flask_api.status.HTTP_204_NO_CONTENT
+            return {"data": None}, flask_api.status.HTTP_204_NO_CONTENT
     except Exception as e:
         return inspect_error(e)

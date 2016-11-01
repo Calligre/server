@@ -24,21 +24,28 @@ EXT_POSTS_TOPIC = "arn:aws:sns:us-west-2:037954390517:calligre-external-posts"
 
 
 def map_id_to_names(uids):
-    r, _ = database.gets("user",
-                         """SELECT id, first_name, last_name FROM account
-                          WHERE id = ANY(%(uids)s);""",
-                         {"uids": uids})
+    res, st = database.gets("user",
+                            """SELECT id, first_name, last_name FROM account
+                            WHERE id = ANY(%(uids)s);""",
+                            {"uids": uids})
+    if not flask_api.status.is_success(st):
+        return {"errors": [{"title": "internal error",
+                            "detail": "id <-> mapping failed"}]}
     mapping = dict()
-    for row in r.get("data"):
-        attrs = row.get("attributes")
-        mapping[attrs.get("id")] = " ".join((attrs.get("first_name"),
-                                             attrs.get("last_name")))
+    for row in res.get("data", []):
+        attrs = row.get("attributes", {})
+        if "id" not in attrs.keys():
+            continue
+        mapping[attrs.get("id")] = " ".join((attrs.get("first_name", ""),
+                                             attrs.get("last_name", "")))
     return mapping
 
 
 def format_post_response(posts, userid):
     uids = [item["poster_id"] for item in posts]
     uid_mapping = map_id_to_names(uids)
+    if "errors" in uid_mapping.keys():
+        return uid_mapping, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
     for item in posts:
         item["timestamp"] = str(item.get("timestamp"))
@@ -86,7 +93,7 @@ class SocialContentList(flask_restful.Resource):
                 "#txt": "text"
             },
             "KeyConditionExpression":
-            Key("posts").eq("posts") & Key("timestamp").gt(Decimal(0)),
+                Key("posts").eq("posts") & Key("timestamp").gt(Decimal(0)),
         }
 
         if args.get("offset"):
@@ -126,7 +133,8 @@ class SocialContentList(flask_restful.Resource):
 
         if not (args.get("text") or args.get("media_link")):
             return {"errors": [{
-                "title": "You must provide either text or a media URL."}]}, \
+                "title": "client error",
+                "detail": "You must provide either text or a media URL."}]}, \
                 flask_api.status.HTTP_400_BAD_REQUEST
 
         # FIXME: URL mashing to detect the resize bucket usage & change to
@@ -157,8 +165,8 @@ class SocialContentList(flask_restful.Resource):
             self.external_post(userid,
                                args.get("text"),
                                args.get("media_link"),
-                               args.get("post_fb"),
-                               args.get("post_tw"))
+                               args.get("post_fb", "False"),
+                               args.get("post_tw", "False"))
         increment_points(userid)
 
         return {"data": {"id": str(timestamp)}}, flask_api.status.HTTP_200_OK
@@ -202,8 +210,8 @@ class SocialContentList(flask_restful.Resource):
             response = client.publish(**params)
             log.debug("Message sent: %s", response.get("MessageId"))
         except Exception as e:
-            log.error("Failed to publish message to SNS!")
-            log.error(e)
+            log.exception("Failed to publish message to SNS!")
+            log.exception(e)
 
 
 class SocialContentUploadURL(flask_restful.Resource):
@@ -230,7 +238,7 @@ class SingleSocialContent(flask_restful.Resource):
                 "#txt": "text"
             },
             "KeyConditionExpression":
-            Key("posts").eq("posts") & Key("timestamp").eq(Decimal(postid)),
+                Key("posts").eq("posts") & Key("timestamp").eq(Decimal(postid))
         }
 
         r, status = dynamo.get_single(params)
@@ -255,7 +263,7 @@ class SingleSocialContent(flask_restful.Resource):
         params = {
             "ProjectionExpression": "poster_id",
             "KeyConditionExpression":
-            Key("posts").eq("posts") & Key("timestamp").eq(postid),
+                Key("posts").eq("posts") & Key("timestamp").eq(postid),
         }
 
         r, status = dynamo.get_single(params)
@@ -265,8 +273,9 @@ class SingleSocialContent(flask_restful.Resource):
 
         if r[0].get("poster_id") != userid:
             return {"errors": [
-                {"title":
-                 "The post you are trying to delete isn't owned by you."}
+                {"title": "client error",
+                 "detail":
+                     "The post you are trying to delete isn't owned by you."}
                 ]},\
                 flask_api.status.HTTP_403_FORBIDDEN
 
@@ -294,7 +303,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
                 "timestamp": Decimal(postid),
             },
             "UpdateExpression":
-            "DELETE likes :like SET like_count = like_count - :1",
+                "DELETE likes :like SET like_count = like_count - :1",
             "ExpressionAttributeValues": {
                 ':like': set([userid]),
                 ':1': 1
@@ -310,7 +319,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
         params = {
             "ProjectionExpression": "likers",
             "KeyConditionExpression":
-            Key("posts").eq("posts") & Key("timestamp").eq(Decimal(postid)),
+                Key("posts").eq("posts") & Key("timestamp").eq(Decimal(postid))
         }
 
         r, status = dynamo.get_single(params)
@@ -320,6 +329,8 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
         liker_ids = r[0].get("likers", [])
         likers = map_id_to_names(liker_ids)
+        if "errors" in likers.keys():
+            return likers, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
         return {"data": likers}, flask_api.status.HTTP_200_OK
 
@@ -332,7 +343,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
                 "timestamp": Decimal(postid),
             },
             "UpdateExpression":
-            "ADD likes :like SET like_count = like_count + :1",
+                "ADD likes :like SET like_count = like_count + :1",
             "ExpressionAttributeValues": {
                 ':like': set([userid]),
                 ':1': 1
