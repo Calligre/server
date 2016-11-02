@@ -10,6 +10,7 @@ import api.auth
 import api.models.broadcast
 import api.models.event
 import api.models.info
+import api.models.social
 import api.models.subscription
 import api.models.user
 
@@ -19,6 +20,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '[not-a-s3cr3t]')
 
 app = flask.Flask(__name__)
 app.secret_key = SECRET_KEY
+app.url_map.strict_slashes = False
 
 restful = flask_restful.Api(app, prefix='/api')
 restful.add_resource(api.models.broadcast.Broadcast, '/broadcast/<int:bid>')
@@ -39,6 +41,14 @@ restful.add_resource(api.models.subscription.SubscriptionUserList,
 restful.add_resource(api.models.user.User, '/user/<uid>')
 restful.add_resource(api.models.user.UserList, '/user')
 restful.add_resource(api.models.user.UserPhoto, '/user/<uid>/photo')
+
+restful.add_resource(api.models.social.SocialContentList, '/social')
+restful.add_resource(api.models.social.SocialContentUploadURL,
+                     '/social-image-upload-url')
+restful.add_resource(api.models.social.SingleSocialContent,
+                     '/social/<float:postid>')
+restful.add_resource(api.models.social.SingleSocialContentLikes,
+                     '/social/<float:postid>/likes')
 
 current_user = werkzeug.local.LocalProxy(
     lambda: _request_ctx_stack.top.current_user)

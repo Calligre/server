@@ -1,5 +1,6 @@
 # pylint: disable=R0201
 import base64
+import os
 
 import boto3
 import flask_api
@@ -10,8 +11,7 @@ from api.auth import requires_auth
 from api.database import delete, get, gets, patch, post
 
 
-# TODO: parameterize
-S3_BUCKET = 'calligre-profilepics'
+PROFILE_PIC_BCKT = os.environ.get("PROFILE_PIC_BUCKET", "calligre-profilepics")
 
 
 class UserPhoto(flask_restful.Resource):
@@ -26,7 +26,7 @@ class UserPhoto(flask_restful.Resource):
 
         s3 = boto3.client('s3')
         response = s3.put_object(
-            Bucket=S3_BUCKET,
+            Bucket=PROFILE_PIC_BCKT,
             Key=filename,
             Body=photo,
             ACL='public-read',
@@ -38,7 +38,8 @@ class UserPhoto(flask_restful.Resource):
             data = {'errors': [{'title': 'could not communicate with S3'}]}
             return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
-        url = 'https://{}.s3.amazonaws.com/{}'.format(S3_BUCKET, filename)
+        url = 'https://{}.s3.amazonaws.com/{}'.\
+            format(PROFILE_PIC_BCKT, filename)
         data = {'data': {'url': url}}
         return data, flask_api.status.HTTP_201_CREATED
 
