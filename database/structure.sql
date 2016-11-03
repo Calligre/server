@@ -41,8 +41,8 @@ CREATE TABLE account (
 DROP TABLE IF EXISTS subscription CASCADE;
 CREATE TABLE subscription (
     id              serial      PRIMARY KEY,
-    account_id      text        NOT NULL REFERENCES account(id),
-    event_id        integer     NOT NULL REFERENCES event(id)
+    account_id      text        NOT NULL REFERENCES account(id) ON DELETE CASCADE,
+    event_id        integer     NOT NULL REFERENCES event(id) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS broadcast CASCADE;
