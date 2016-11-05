@@ -15,6 +15,9 @@ import flask_restful.reqparse
 from api import database, dynamo
 
 
+AWS_SNS_ACCESS_KEY = os.environ.get('AWS_SNS_ACCESS_KEY')
+AWS_SNS_SECRET_KEY = os.environ.get('AWS_SNS_SECRET_KEY')
+
 MAX_POSTS = 25
 PROFILE_PIC_BCKT = os.environ.get('PROFILE_PIC_BUCKET', 'calligre-profilepics')
 EXT_POSTS_TOPIC = 'arn:aws:sns:us-west-2:037954390517:calligre-external-posts'
@@ -215,7 +218,8 @@ class SocialContentList(flask_restful.Resource):
         log.debug('Posting to FB: %s; posting to Twitter: %s', fb, tw)
 
         try:
-            sns_boto = boto3.Session(profile_name='sns')
+            sns_boto = boto3.Session(aws_access_key_id=AWS_SNS_ACCESS_KEY,
+                                     aws_secret_access_key=AWS_SNS_SECRET_KEY)
             client = sns_boto.client('sns')
             response = client.publish(**params)
             log.debug('Message sent: %s', response.get('MessageId'))
