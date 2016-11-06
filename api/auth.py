@@ -21,21 +21,21 @@ def requires_auth(function):
             data = {'errors': [{
                 'title': 'authorization error',
                 'detail': 'missing authorization header'}]}
-            return flask.jsonify(data), flask_api.status.HTTP_401_UNAUTHORIZED
+            return data, flask_api.status.HTTP_401_UNAUTHORIZED
 
         parts = auth.split()
         if len(parts) != 2:
             data = {'errors': [{
                 'title': 'authorization error',
                 'detail': 'authorization header is malformed'}]}
-            return flask.jsonify(data), flask_api.status.HTTP_401_UNAUTHORIZED
+            return data, flask_api.status.HTTP_401_UNAUTHORIZED
 
         bearer, token = parts
         if bearer.lower() != 'bearer':
             data = {'errors': [{
                 'title': 'authorization error',
                 'detail': 'authorization header must start with Bearer'}]}
-            return flask.jsonify(data), flask_api.status.HTTP_401_UNAUTHORIZED
+            return data, flask_api.status.HTTP_401_UNAUTHORIZED
 
         try:
             secret = base64.b64decode(
@@ -45,17 +45,17 @@ def requires_auth(function):
             data = {'errors': [{
                 'title': 'authorization error',
                 'detail': 'expired token'}]}
-            return flask.jsonify(data), flask_api.status.HTTP_401_UNAUTHORIZED
+            return data, flask_api.status.HTTP_401_UNAUTHORIZED
         except jwt.InvalidAudienceError:
             data = {'errors': [{
                 'title': 'authorization error',
                 'detail': 'incorrect audience'}]}
-            return flask.jsonify(data), flask_api.status.HTTP_401_UNAUTHORIZED
+            return data, flask_api.status.HTTP_401_UNAUTHORIZED
         except jwt.DecodeError:
             data = {'errors': [{
                 'title': 'authorization error',
                 'detail': 'invalid signature'}]}
-            return flask.jsonify(data), flask_api.status.HTTP_401_UNAUTHORIZED
+            return data, flask_api.status.HTTP_401_UNAUTHORIZED
 
         _request_ctx_stack.top.current_user = payload
         return function(*args, **kwargs)

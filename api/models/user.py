@@ -7,6 +7,7 @@ import flask_api
 import flask_restful
 import flask_restful.reqparse
 
+from api.auth import requires_auth
 from api.database import delete, get, gets, patch, post
 
 
@@ -14,6 +15,7 @@ PROFILE_PIC_BCKT = os.environ.get("PROFILE_PIC_BUCKET", "calligre-profilepics")
 
 
 class UserPhoto(flask_restful.Resource):
+    @requires_auth
     def put(self, uid):
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('data', type=str, location='json', required=True)
@@ -43,6 +45,7 @@ class UserPhoto(flask_restful.Resource):
 
 
 class UserList(flask_restful.Resource):
+    @requires_auth
     def get(self):
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('first_name', type=str, location='json', default=None)
@@ -69,6 +72,7 @@ class UserList(flask_restful.Resource):
                     """ SELECT * FROM account
                         WHERE 1=1 {} """.format(''.join(conds)))
 
+    @requires_auth
     def post(self):
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('id', type=str, location='json', required=True)
@@ -105,16 +109,19 @@ class UserList(flask_restful.Resource):
 
 
 class User(flask_restful.Resource):
+    @requires_auth
     def delete(self, uid):
         return delete('user',
                       'DELETE FROM account WHERE id = %(uid)s',
                       {'uid': uid})
 
+    @requires_auth
     def get(self, uid):
         return get('user',
                    'SELECT * FROM account WHERE id = %(uid)s',
                    {'uid': uid})
 
+    @requires_auth
     def patch(self, uid):
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('first_name', type=str, location='json', default=None)

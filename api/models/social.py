@@ -13,6 +13,7 @@ import flask_restful
 import flask_restful.reqparse
 
 from api import database, dynamo
+from api.auth import requires_auth
 
 
 AWS_SNS_ACCESS_KEY = os.environ.get('AWS_SNS_ACCESS_KEY')
@@ -82,6 +83,7 @@ def decrement_points(userid):
 
 
 class SocialContentList(flask_restful.Resource):
+    @requires_auth
     def get(self):
         # FIXME: Use userid from jwt token
         userid = 'temp id'
@@ -130,6 +132,7 @@ class SocialContentList(flask_restful.Resource):
 
         return {'data': body}, flask_api.status.HTTP_200_OK
 
+    @requires_auth
     def post(self):
         # FIXME: Use userid from jwt token
         userid = 'test user'
@@ -229,6 +232,7 @@ class SocialContentList(flask_restful.Resource):
 
 
 class SocialContentUploadURL(flask_restful.Resource):
+    @requires_auth
     def get(self):
         # TODO: specify auth?
         s3 = boto3.client('s3')
@@ -242,36 +246,7 @@ class SocialContentUploadURL(flask_restful.Resource):
 
 
 class SingleSocialContent(flask_restful.Resource):
-    def get(self, postid):
-        # FIXME: Use userid from jwt token
-        userid = '2'
-
-        postid = Decimal(postid)
-        params = {
-            'Limit': 1,
-            'ScanIndexForward': False,
-            'ProjectionExpression': '#ts,poster_id,#txt,media_link,like_count',
-            'ExpressionAttributeNames': {
-                '#ts': 'timestamp',
-                '#txt': 'text'
-            },
-            'KeyConditionExpression':
-                Key('posts').eq('posts') & Key('timestamp').eq(postid),
-        }
-
-        r, status = dynamo.get_single(params)
-        if not flask_api.status.is_success(status):
-            return r, status
-
-        posts = format_post_response(r, userid)
-
-        body = {
-            'posts': posts,
-            'count': 1,
-        }
-
-        return {'data': body}, flask_api.status.HTTP_200_OK
-
+    @requires_auth
     def delete(self, postid):
         # FIXME: Use userid from jwt token
         userid = 'temp id'
@@ -305,8 +280,40 @@ class SingleSocialContent(flask_restful.Resource):
 
         return dynamo.delete(params)
 
+    @requires_auth
+    def get(self, postid):
+        # FIXME: Use userid from jwt token
+        userid = '2'
+
+        postid = Decimal(postid)
+        params = {
+            'Limit': 1,
+            'ScanIndexForward': False,
+            'ProjectionExpression': '#ts,poster_id,#txt,media_link,like_count',
+            'ExpressionAttributeNames': {
+                '#ts': 'timestamp',
+                '#txt': 'text'
+            },
+            'KeyConditionExpression':
+                Key('posts').eq('posts') & Key('timestamp').eq(postid),
+        }
+
+        r, status = dynamo.get_single(params)
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        posts = format_post_response(r, userid)
+
+        body = {
+            'posts': posts,
+            'count': 1,
+        }
+
+        return {'data': body}, flask_api.status.HTTP_200_OK
+
 
 class SingleSocialContentLikes(flask_restful.Resource):
+    @requires_auth
     def delete(self, postid):
         # FIXME: Use userid from jwt token
         userid = 'test'
@@ -329,6 +336,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
         return dynamo.patch(params)
 
+    @requires_auth
     def get(self, postid):
         postid = Decimal(postid)
         params = {
@@ -348,6 +356,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
         return {'data': res}, flask_api.status.HTTP_200_OK
 
+    @requires_auth
     def post(self, postid):
         # FIXME: Use userid from jwt token
         userid = 'test id'
