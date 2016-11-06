@@ -16,10 +16,18 @@ log = logging.getLogger()
 log.setLevel(logging.INFO)
 
 
+def auth_enabled():
+    return AUTH0_CLIENT_ID and AUTH0_SECRET_ID
+
+
 def requires_auth(function):
     # pylint: disable=too-many-return-statements
     @functools.wraps(function)
     def decorated(*args, **kwargs):
+        if not auth_enabled():
+            _request_ctx_stack.top.current_user = 'test-user'
+            return function(*args, **kwargs)
+
         auth = flask.request.headers.get('Authorization', None)
         if not auth:
             data = {'errors': [{
