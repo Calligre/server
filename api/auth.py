@@ -55,7 +55,13 @@ def requires_auth(function):
     @functools.wraps(function)
     def decorated(*args, **kwargs):
         if not enabled():
-            _request_ctx_stack.top.current_user = 'test-user'
+            _request_ctx_stack.top.current_user = {
+                'aud': AUTH0_CLIENT_ID,
+                'exp': 4102444800,  # 2100-01-01
+                'iat': 946684800,   # 2000-01-01
+                'iss': 'https://calligre.auth0.com/',
+                'sub': '1',         # user ID
+            }
             return function(*args, **kwargs)
 
         auth = flask.request.headers.get('Authorization', None)
