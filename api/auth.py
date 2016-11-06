@@ -1,5 +1,6 @@
 import base64
 import functools
+import logging
 import os
 
 import flask
@@ -10,6 +11,9 @@ import jwt
 
 AUTH0_CLIENT_ID = os.environ.get('AUTH0_CLIENT_ID', '')
 AUTH0_SECRET_ID = os.environ.get('AUTH0_SECRET_ID', '')
+
+log = logging.getLogger()
+log.setLevel(logging.INFO)
 
 
 def requires_auth(function):
@@ -56,6 +60,12 @@ def requires_auth(function):
                 'title': 'authorization error',
                 'detail': 'invalid signature'}]}
             return data, flask_api.status.HTTP_401_UNAUTHORIZED
+        except Exception as e:
+            log.exception(e)
+            data = {'errors': [{
+                'title': 'authorization error',
+                'detail': 'unknown error occured while parsing authentication',
+                'source': {'exception': str(e)}}]}
 
         _request_ctx_stack.top.current_user = payload
         return function(*args, **kwargs)
