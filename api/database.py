@@ -1,5 +1,5 @@
+import logging
 import os
-import traceback
 
 import flask_api
 import psycopg2
@@ -14,6 +14,9 @@ DB_PORT = os.environ.get('DB_PORT', 5432)
 db = psycopg2.connect(database=DB_BASE, user=DB_USER, password=DB_PASS,
                       host=DB_HOST, port=DB_PORT)
 
+log = logging.getLogger()
+log.setLevel(logging.INFO)
+
 
 def delete(_resource, query, params):
     try:
@@ -22,11 +25,12 @@ def delete(_resource, query, params):
             db.commit()
 
             affected = cursor.rowcount
-    except Exception:
-        traceback.print_exc()
+    except Exception as e:
+        log.exception(e)
         data = {'errors': [{
             'title': 'database error',
-            'detail': 'could not delete record'}]}
+            'detail': 'could not delete record',
+            'source': {'exception': str(e)}}]}
         return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
     if not affected:
@@ -43,11 +47,12 @@ def get(resource, query, params):
             cursor.execute(query, params)
             columns = [d[0] for d in cursor.description]
             record = cursor.fetchone()
-    except Exception:
-        traceback.print_exc()
+    except Exception as e:
+        log.exception(e)
         data = {'errors': [{
             'title': 'database error',
-            'detail': 'could not get record'}]}
+            'detail': 'could not get record',
+            'source': {'exception': str(e)}}]}
         return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
     if not record:
@@ -65,13 +70,14 @@ def gets(resource, query, params=None):
     try:
         with db.cursor() as cursor:
             cursor.execute(query, params)
-            columns = [d['name'] for d in cursor.description]
+            columns = [d[0] for d in cursor.description]
             records = cursor.fetchall()
-    except Exception:
-        traceback.print_exc()
+    except Exception as e:
+        log.exception(e)
         data = {'errors': [{
             'title': 'database error',
-            'detail': 'could not get records'}]}
+            'detail': 'could not get records',
+            'source': {'exception': str(e)}}]}
         return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
     data = {'data': list()}
@@ -90,11 +96,12 @@ def patch(_resource, query, params):
             db.commit()
 
             affected = cursor.rowcount
-    except Exception:
-        traceback.print_exc()
+    except Exception as e:
+        log.exception(e)
         data = {'errors': [{
             'title': 'database error',
-            'detail': 'could not patch record'}]}
+            'detail': 'could not patch record',
+            'source': {'exception': str(e)}}]}
         return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
     if not affected:
@@ -111,11 +118,12 @@ def post(resource, query, params):
             cursor.execute(query, params)
             uuid = cursor.fetchone()[0]
             db.commit()
-    except Exception:
-        traceback.print_exc()
+    except Exception as e:
+        log.exception(e)
         data = {'errors': [{
             'title': 'database error',
-            'detail': 'could not post record'}]}
+            'detail': 'could not post record',
+            'source': {'exception': str(e)}}]}
         return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
     data = {'data': {'type': resource, 'id': uuid}}
