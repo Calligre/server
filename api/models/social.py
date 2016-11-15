@@ -237,7 +237,7 @@ class SocialContentUploadURL(flask_restful.Resource):
         # TODO: specify auth?
         s3 = boto3.client('s3')
         post_url = s3.generate_presigned_post(
-            Bucket='calligre-images-pending-resize',
+            Bucket='calligre-images',
             Key=''.join(random.choice(string.ascii_uppercase + string.digits)
                         for _ in range(12))
         )
