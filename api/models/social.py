@@ -48,7 +48,7 @@ def map_id_to_names(uids):
         mapping[attrs['id']] = ' '.join((attrs.get('first_name', ''),
                                          attrs.get('last_name', '')))
 
-    return mapping
+    return mapping, st
 
 
 def format_post_response(posts, userid):
@@ -67,7 +67,7 @@ def format_post_response(posts, userid):
         item['like_count'] = str(item.get('like_count'))
         item.pop('likes', None)
 
-    return posts
+    return posts, st
 
 
 def increment_points(userid):
