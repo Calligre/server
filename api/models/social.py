@@ -85,8 +85,7 @@ def decrement_points(userid):
 class SocialContentList(flask_restful.Resource):
     @requires_auth
     def get(self):
-        # FIXME: Use userid from jwt token
-        userid = 'temp id'
+        userid = current_user['sub']
 
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='json', default=MAX_POSTS)
@@ -248,8 +247,7 @@ class SocialContentUploadURL(flask_restful.Resource):
 class SingleSocialContent(flask_restful.Resource):
     @requires_auth
     def delete(self, postid):
-        # FIXME: Use userid from jwt token
-        userid = 'temp id'
+        userid = current_user['sub']
 
         postid = Decimal(postid)
         params = {
@@ -282,8 +280,7 @@ class SingleSocialContent(flask_restful.Resource):
 
     @requires_auth
     def get(self, postid):
-        # FIXME: Use userid from jwt token
-        userid = '2'
+        userid = current_user['sub']
 
         postid = Decimal(postid)
         params = {
@@ -315,8 +312,7 @@ class SingleSocialContent(flask_restful.Resource):
 class SingleSocialContentLikes(flask_restful.Resource):
     @requires_auth
     def delete(self, postid):
-        # FIXME: Use userid from jwt token
-        userid = 'test'
+        userid = current_user['sub']
 
         params = {
             'Key': {
@@ -358,8 +354,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
     @requires_auth
     def post(self, postid):
-        # FIXME: Use userid from jwt token
-        userid = 'test id'
+        userid = current_user['sub']
 
         params = {
             'Key': {
