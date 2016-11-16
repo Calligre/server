@@ -187,9 +187,6 @@ class SocialContentList(flask_restful.Resource):
 
     @staticmethod
     def external_post(userid, message, media_s3, fb, tw):
-        # FIXME: Use actual userid
-        userid = 'facebook|10207943757254134'
-
         params = {
             'TopicArn': EXT_POSTS_TOPIC,
             'Message': message,
