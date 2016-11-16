@@ -133,10 +133,7 @@ class SocialContentList(flask_restful.Resource):
 
     @requires_auth
     def post(self):
-        # FIXME: Use userid from jwt token
-        userid = 'test user'
-        # FIXME: Should this be the same key as above?
-        other_user_id = 'temp id'
+        userid = current_user['sub']
 
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('text', type=str, location='json', default=None)
@@ -159,7 +156,7 @@ class SocialContentList(flask_restful.Resource):
             'Item': {
                 'posts': 'posts',
                 'timestamp': timestamp,
-                'poster_id': other_user_id,
+                'poster_id': userid,
                 'like_count': 0,
             },
             'ConditionExpression': Attr('timestamp').ne(timestamp),
