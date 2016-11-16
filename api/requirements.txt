@@ -1,5 +1,5 @@
 cryptography==1.5
-boto3==1.4.0
+boto3==1.4.1
 flask==0.11.1
 flask-api==0.6.7
 flask-restful==0.3.5
