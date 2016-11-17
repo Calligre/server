@@ -11,6 +11,8 @@ from boto3.dynamodb.conditions import Attr, Key, Not
 import flask_api
 import flask_restful
 import flask_restful.reqparse
+from flask import _request_ctx_stack
+import werkzeug.local
 
 from api import database, dynamo
 from api.auth import requires_auth
@@ -85,7 +87,8 @@ def decrement_points(userid):
 class SocialContentList(flask_restful.Resource):
     @requires_auth
     def get(self):
-        userid = current_user['sub']
+        userid = werkzeug.local.\
+            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
 
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='json', default=MAX_POSTS)
@@ -133,7 +136,8 @@ class SocialContentList(flask_restful.Resource):
 
     @requires_auth
     def post(self):
-        userid = current_user['sub']
+        userid = werkzeug.local.\
+            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
 
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('text', type=str, location='json', default=None)
@@ -227,11 +231,13 @@ class SocialContentList(flask_restful.Resource):
 class SocialContentUploadURL(flask_restful.Resource):
     @requires_auth
     def get(self):
+        userid = werkzeug.local.\
+            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
         suffix = ''.join(random.choice(string.ascii_uppercase + string.digits)
-            for _ in range(12))
+                         for _ in range(12))
         post_url = boto3.client('s3').generate_presigned_post(
             Bucket='calligre-images',
-            Key='{}-{}'.format(current_user['sub'].replace('|', '-'), suffix)
+            Key='{}-{}'.format(userid.replace('|', '-'), suffix)
         )
 
         return post_url, flask_api.status.HTTP_200_OK
@@ -240,7 +246,8 @@ class SocialContentUploadURL(flask_restful.Resource):
 class SingleSocialContent(flask_restful.Resource):
     @requires_auth
     def delete(self, postid):
-        userid = current_user['sub']
+        userid = werkzeug.local.\
+            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
 
         postid = Decimal(postid)
         params = {
@@ -273,7 +280,8 @@ class SingleSocialContent(flask_restful.Resource):
 
     @requires_auth
     def get(self, postid):
-        userid = current_user['sub']
+        userid = werkzeug.local.\
+            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
 
         postid = Decimal(postid)
         params = {
@@ -305,7 +313,8 @@ class SingleSocialContent(flask_restful.Resource):
 class SingleSocialContentLikes(flask_restful.Resource):
     @requires_auth
     def delete(self, postid):
-        userid = current_user['sub']
+        userid = werkzeug.local.\
+            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
 
         params = {
             'Key': {
@@ -347,7 +356,8 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
     @requires_auth
     def post(self, postid):
-        userid = current_user['sub']
+        userid = werkzeug.local.\
+            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
 
         params = {
             'Key': {
