@@ -56,7 +56,7 @@ def map_id_to_names(uids):
     return mapping, st
 
 
-def format_post_response(posts, userid):
+def format_post_response(posts, req_userid):
     uids = [item['poster_id'] for item in posts]
     res, st = map_id_to_names(uids)
     if not flask_api.status.is_success(st):
@@ -68,23 +68,23 @@ def format_post_response(posts, userid):
         item['poster_name'] = res.get(item['poster_id'], 'Random User')
         item['poster_icon'] = 'https://{}.s3.amazonaws.com/profilepic-{}.jpg'\
             .format(PROFILE_PIC_BCKT, item['poster_id'])
-        item['current_user_likes'] = userid in item.get('likes', [])
+        item['current_user_likes'] = req_userid in item.get('likes', [])
         item['like_count'] = str(item.get('like_count'))
         item.pop('likes', None)
 
     return posts, st
 
 
-def increment_points(userid):
+def increment_points(req_userid):
     database.patch('user',
                    'UPDATE account SET points = points + 1 where id = %(id)s',
-                   {'id': userid})
+                   {'id': req_userid})
 
 
-def decrement_points(userid):
+def decrement_points(req_userid):
     database.patch('user',
                    'UPDATE account SET points = points - 1 where id = %(id)s',
-                   {'id': userid})
+                   {'id': req_userid})
 
 
 class SocialContentList(flask_restful.Resource):
@@ -184,7 +184,7 @@ class SocialContentList(flask_restful.Resource):
         return {'data': {'id': str(timestamp)}}, flask_api.status.HTTP_200_OK
 
     @staticmethod
-    def external_post(userid, message, media_s3, fb, tw):
+    def external_post(req_userid, message, media_s3, fb, tw):
         params = {
             'TopicArn': EXT_POSTS_TOPIC,
             'Message': message,
@@ -192,7 +192,7 @@ class SocialContentList(flask_restful.Resource):
             'MessageAttributes': {
                 'userid': {
                     'DataType': 'String',
-                    'StringValue': userid
+                    'StringValue': req_userid
                 },
                 'facebook': {
                     'DataType': 'String',
@@ -211,7 +211,10 @@ class SocialContentList(flask_restful.Resource):
                 'StringValue': media_s3,
             }
 
-        log.debug("%s saying '%s', with media %s", userid, message, media_s3)
+        log.debug('%s saying "%s", with media %s',
+                  req_userid,
+                  message,
+                  media_s3)
         log.debug('Posting to FB: %s; posting to Twitter: %s', fb, tw)
 
         try:
