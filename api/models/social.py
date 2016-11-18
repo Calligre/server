@@ -28,6 +28,9 @@ EXT_POSTS_TOPIC = 'arn:aws:sns:us-west-2:037954390517:calligre-external-posts'
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 
+userid = werkzeug.local.\
+    LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
+
 
 def map_id_to_names(uids):
     res, st = database.gets('user',
@@ -87,9 +90,6 @@ def decrement_points(userid):
 class SocialContentList(flask_restful.Resource):
     @requires_auth
     def get(self):
-        userid = werkzeug.local.\
-            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
-
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='json', default=MAX_POSTS)
         req.add_argument('offset', type=float, location='json', required=False)
@@ -136,9 +136,6 @@ class SocialContentList(flask_restful.Resource):
 
     @requires_auth
     def post(self):
-        userid = werkzeug.local.\
-            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
-
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('text', type=str, location='json', default=None)
         req.add_argument('media_link', type=str, location='json', default=None)
@@ -231,8 +228,6 @@ class SocialContentList(flask_restful.Resource):
 class SocialContentUploadURL(flask_restful.Resource):
     @requires_auth
     def get(self):
-        userid = werkzeug.local.\
-            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
         suffix = ''.join(random.choice(string.ascii_uppercase + string.digits)
                          for _ in range(12))
         post_url = boto3.client('s3').generate_presigned_post(
@@ -246,9 +241,6 @@ class SocialContentUploadURL(flask_restful.Resource):
 class SingleSocialContent(flask_restful.Resource):
     @requires_auth
     def delete(self, postid):
-        userid = werkzeug.local.\
-            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
-
         postid = Decimal(postid)
         params = {
             'ProjectionExpression': 'poster_id',
@@ -280,9 +272,6 @@ class SingleSocialContent(flask_restful.Resource):
 
     @requires_auth
     def get(self, postid):
-        userid = werkzeug.local.\
-            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
-
         postid = Decimal(postid)
         params = {
             'Limit': 1,
@@ -313,9 +302,6 @@ class SingleSocialContent(flask_restful.Resource):
 class SingleSocialContentLikes(flask_restful.Resource):
     @requires_auth
     def delete(self, postid):
-        userid = werkzeug.local.\
-            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
-
         params = {
             'Key': {
                 'posts': 'posts',
@@ -356,9 +342,6 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
     @requires_auth
     def post(self, postid):
-        userid = werkzeug.local.\
-            LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
-
         params = {
             'Key': {
                 'posts': 'posts',
