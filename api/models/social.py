@@ -8,11 +8,10 @@ from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.conditions import Attr, Key, Not
+from flask import _request_ctx_stack
 import flask_api
 import flask_restful
 import flask_restful.reqparse
-from flask import _request_ctx_stack
-import werkzeug.local
 
 from api import database, dynamo
 from api.auth import requires_auth
@@ -27,9 +26,6 @@ EXT_POSTS_TOPIC = 'arn:aws:sns:us-west-2:037954390517:calligre-external-posts'
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
-
-userid = werkzeug.local.\
-    LocalProxy(lambda: _request_ctx_stack.top.current_user)['sub']
 
 
 def map_id_to_names(uids):
@@ -120,6 +116,7 @@ class SocialContentList(flask_restful.Resource):
         if not flask_api.status.is_success(status):
             return r, status
 
+        userid = _request_ctx_stack.top.current_user['sub']
         posts = format_post_response(r.get('Items', []), userid)
 
         nextOffset = r.get('LastEvaluatedKey', {}).get('timestamp')
@@ -152,6 +149,7 @@ class SocialContentList(flask_restful.Resource):
         # FIXME: URL mashing to detect the resize bucket usage & change to
         # point at the non-resized bucket
         # url parse & matching host?
+        userid = _request_ctx_stack.top.current_user['sub']
         timestamp = Decimal(time.time())
         params = {
             'Item': {
@@ -231,6 +229,7 @@ class SocialContentList(flask_restful.Resource):
 class SocialContentUploadURL(flask_restful.Resource):
     @requires_auth
     def get(self):
+        userid = _request_ctx_stack.top.current_user['sub']
         suffix = ''.join(random.choice(string.ascii_uppercase + string.digits)
                          for _ in range(12))
         post_url = boto3.client('s3').generate_presigned_post(
@@ -255,6 +254,7 @@ class SingleSocialContent(flask_restful.Resource):
         if not flask_api.status.is_success(status):
             return r, status
 
+        userid = _request_ctx_stack.top.current_user['sub']
         if r[0].get('poster_id') != userid:
             data = {'errors': [{'title': 'client error',
                                 'detail': "can not delete un-owned post"}]}
@@ -292,6 +292,7 @@ class SingleSocialContent(flask_restful.Resource):
         if not flask_api.status.is_success(status):
             return r, status
 
+        userid = _request_ctx_stack.top.current_user['sub']
         posts = format_post_response(r, userid)
 
         body = {
@@ -305,6 +306,7 @@ class SingleSocialContent(flask_restful.Resource):
 class SingleSocialContentLikes(flask_restful.Resource):
     @requires_auth
     def delete(self, postid):
+        userid = _request_ctx_stack.top.current_user['sub']
         params = {
             'Key': {
                 'posts': 'posts',
@@ -345,6 +347,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
     @requires_auth
     def post(self, postid):
+        userid = _request_ctx_stack.top.current_user['sub']
         params = {
             'Key': {
                 'posts': 'posts',
