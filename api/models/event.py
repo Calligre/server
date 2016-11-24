@@ -11,13 +11,13 @@ class EventList(flask_restful.Resource):
     @requires_auth
     def get(self):
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('name', type=str, location='json', default=None)
+        req.add_argument('name', type=str, location='args', default=None)
 
-        req.add_argument('location', type=str, location='json', default=None)
-        req.add_argument('stream', type=int, location='json', default=None)
+        req.add_argument('location', type=str, location='args', default=None)
+        req.add_argument('stream', type=int, location='args', default=None)
 
-        req.add_argument('starttime', type=int, location='json', default=None)
-        req.add_argument('endtime', type=int, location='json', default=None)
+        req.add_argument('starttime', type=int, location='args', default=None)
+        req.add_argument('endtime', type=int, location='args', default=None)
         args = req.parse_args()
         args = {k: v for k, v in args.items() if v is not None}
 
