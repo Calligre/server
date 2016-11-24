@@ -11,7 +11,7 @@ class BroadcastList(flask_restful.Resource):
     @requires_auth
     def get(self):
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('expirytime', type=int, location='json', default=None)
+        req.add_argument('expirytime', type=int, location='args', default=None)
         args = req.parse_args()
         args = {k: v for k, v in args.items() if v is not None}
 

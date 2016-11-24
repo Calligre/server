@@ -87,8 +87,8 @@ class SocialContentList(flask_restful.Resource):
     @requires_auth
     def get(self):
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('limit', type=int, location='json', default=MAX_POSTS)
-        req.add_argument('offset', type=float, location='json', required=False)
+        req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
+        req.add_argument('offset', type=float, location='args', required=False)
         args = req.parse_args()
 
         limit = min(args['limit'], MAX_POSTS)
