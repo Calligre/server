@@ -79,7 +79,7 @@ def me():
         return user, flask_api.status.HTTP_200_OK
 
     user, code = get_current_user()
-    data = {'data': {'id': user['sub']}}
+    data = {'data': {'id': user['sub'], 'type': 'user'}}
     return flask.jsonify(data), code
 
 
