@@ -51,3 +51,35 @@ CREATE TABLE broadcast (
     message         text        NOT NULL,
     expiryTime      bigint      NOT NULL
 );
+
+DROP TABLE IF EXISTS capability CASCADE;
+CREATE TABLE capability (
+    id              text        PRIMARY KEY REFERENCES account(id) ON DELETE CASCADE,
+    read            boolean     NOT NULL DEFAULT TRUE,
+    write           boolean     NOT NULL DEFAULT FALSE,
+    admin           boolean     NOT NULL DEFAULT FALSE
+);
+
+CREATE OR REPLACE FUNCTION account_capability_insert() RETURNS trigger AS
+$$
+BEGIN
+    INSERT INTO capability(id) VALUES (NEW.id);
+    RETURN NEW;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER account_capability_insert_trigger AFTER INSERT ON account
+    FOR EACH ROW EXECUTE PROCEDURE account_capability_insert();
+
+CREATE OR REPLACE FUNCTION account_capability_delete() RETURNS trigger AS
+$$
+BEGIN
+    DELETE from capability WHERE id = OLD.id;
+    RETURN NEW;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER account_capability_delete_trigger AFTER DELETE ON account
+    FOR EACH ROW EXECUTE PROCEDURE account_capability_delete();

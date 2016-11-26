@@ -7,6 +7,7 @@ import flask_restful
 
 import api.auth
 import api.models.broadcast
+import api.models.capability
 import api.models.event
 import api.models.info
 import api.models.social
@@ -25,6 +26,9 @@ app.url_map.strict_slashes = False
 restful = flask_restful.Api(app, prefix='/api')
 restful.add_resource(api.models.broadcast.Broadcast, '/broadcast/<int:bid>')
 restful.add_resource(api.models.broadcast.BroadcastList, '/broadcast')
+
+restful.add_resource(api.models.capability.Capability,
+                     '/user/<uid>/capability')
 
 restful.add_resource(api.models.event.Event, '/event/<int:eid>')
 restful.add_resource(api.models.event.EventList, '/event')

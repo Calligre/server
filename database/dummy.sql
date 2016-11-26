@@ -10,6 +10,10 @@ INSERT INTO account (id, first_name, last_name, email, organization)
            ('adsku43oufo4ulf', 'Kadam', 'Ey', 'kadam@google.com', 'KGoogle');
 
 
+UPDATE capability SET admin = TRUE WHERE id = '1';
+UPDATE capability SET write = TRUE WHERE id IN ('1', '2');
+
+
 INSERT INTO info (name, logo, location, twitter, facebook, other, startTime, endTime)
     VALUES ('SE Hackday', 'http://se.hackday.ca/assets/logo-white-0b4035ad70a69a2ffe9f254c53d11b16.png',
             'Multimedia lab', 'https://twitter.com', 'https://facebook.com',
@@ -27,6 +31,7 @@ INSERT INTO event (name, description, stream, location, startTime, endTime)
 
 
 INSERT INTO subscription (account_id, event_id) VALUES (1, 1);
+
 
 INSERT INTO broadcast (message, expiryTime)
     VALUES ('Hi everyone!', 1468120172),
