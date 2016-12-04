@@ -33,15 +33,16 @@ def inspect_return(response):
 
 
 def inspect_error(e):
+    # ConditionalCheckFailedException is an expected thing, don't log it
+    if hasattr(e, 'response') and e.response.get('Error', {}).get('Code') == \
+            'ConditionalCheckFailedException':
+        return {'data': None}, flask_api.status.HTTP_304_NOT_MODIFIED
+
     log.exception(e)
     if not hasattr(e, 'response') or not e.response.get('Error'):
         data = {'errors': [{'title': 'internal error',
                             'detail': 'no response from Dynamo'}]}
         return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    if e.response.get('Error', {}).get('Code') == \
-            'ConditionalCheckFailedException':
-        return {'data': None}, flask_api.status.HTTP_304_NOT_MODIFIED
 
     data = {'errors': [{
         'title': 'internal error',
@@ -50,10 +51,16 @@ def inspect_error(e):
     return data, flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
+def expect_empty_return(response):
+    response, status = inspect_return(response)
+    if status == 200:
+        return {'data': None}, flask_api.status.HTTP_204_NO_CONTENT
+    return response, status
+
+
 def get(params):
     try:
-        response = dynamo.query(**params)
-        return inspect_return(response)
+        return inspect_return(dynamo.query(**params))
     except Exception as e:
         return inspect_error(e)
 
@@ -72,27 +79,20 @@ def get_single(params):
 
 def patch(params):
     try:
-        return inspect_return(dynamo.update_item(**params))
+        return expect_empty_return(dynamo.update_item(**params))
     except Exception as e:
-        # FIXME: move fine grained exception here:
-        # Need to find type of ConditionalCheckFailedException first
         return inspect_error(e)
 
 
 def put(params):
     try:
-        return inspect_return(dynamo.put_item(**params))
+        return expect_empty_return(dynamo.put_item(**params))
     except Exception as e:
         return inspect_error(e)
 
 
 def delete(params):
     try:
-        response = dynamo.delete_item(**params)
-        response, status = inspect_return(response)
-        if status == 200:
-            return {'data': None}, flask_api.status.HTTP_204_NO_CONTENT
-
-        return response, status
+        return expect_empty_return(dynamo.delete_item(**params))
     except Exception as e:
         return inspect_error(e)

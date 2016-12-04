@@ -364,4 +364,4 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
         increment_points(userid)
 
-        return dynamo.put(params)
+        return dynamo.patch(params)
