@@ -234,8 +234,8 @@ class SocialContentUploadURL(flask_restful.Resource):
                          for _ in range(12))
         post_url = boto3.client('s3').generate_presigned_url(
             "put_object", {
-                Bucket='calligre-images',
-                Key='{}-{}'.format(userid.replace('|', '-'), suffix)
+                "Bucket": 'calligre-images',
+                "Key": '{}-{}'.format(userid.replace('|', '-'), suffix)
             }
         )
 
