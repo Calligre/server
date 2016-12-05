@@ -232,12 +232,14 @@ class SocialContentUploadURL(flask_restful.Resource):
         userid = _request_ctx_stack.top.current_user['sub']
         suffix = ''.join(random.choice(string.ascii_uppercase + string.digits)
                          for _ in range(12))
-        post_url = boto3.client('s3').generate_presigned_post(
-            Bucket='calligre-images',
-            Key='{}-{}'.format(userid.replace('|', '-'), suffix)
+        post_url = boto3.client('s3').generate_presigned_url(
+            "put_object", {
+                "Bucket": 'calligre-images',
+                "Key": '{}-{}'.format(userid.replace('|', '-'), suffix)
+            }
         )
 
-        return post_url, flask_api.status.HTTP_200_OK
+        return {'data': post_url}, flask_api.status.HTTP_200_OK
 
 
 class SingleSocialContent(flask_restful.Resource):
