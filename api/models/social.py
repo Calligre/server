@@ -229,13 +229,21 @@ class SocialContentList(flask_restful.Resource):
 class SocialContentUploadURL(flask_restful.Resource):
     @requires_auth
     def get(self):
+        req = flask_restful.reqparse.RequestParser()
+        req.add_argument('content-type',
+                         type=str,
+                         location='args',
+                         required=True)
+        args = req.parse_args()
+
         userid = _request_ctx_stack.top.current_user['sub']
         suffix = ''.join(random.choice(string.ascii_uppercase + string.digits)
                          for _ in range(12))
         post_url = boto3.client('s3').generate_presigned_url(
             "put_object", {
                 "Bucket": 'calligre-images',
-                "Key": '{}-{}'.format(userid.replace('|', '-'), suffix)
+                "Key": '{}-{}'.format(userid.replace('|', '-'), suffix),
+                "ContentType": args['content-type']
             }
         )
 
