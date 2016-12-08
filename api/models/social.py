@@ -230,7 +230,7 @@ class SocialContentUploadURL(flask_restful.Resource):
     @requires_auth
     def get(self):
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('content-type',
+        req.add_argument('Content-Type',
                          type=str,
                          location='args',
                          required=True)
@@ -243,7 +243,7 @@ class SocialContentUploadURL(flask_restful.Resource):
             "put_object", {
                 "Bucket": 'calligre-images',
                 "Key": '{}-{}'.format(userid.replace('|', '-'), suffix),
-                "ContentType": args['content-type']
+                "ContentType": args['Content-Type']
             }
         )
 
