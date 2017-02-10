@@ -18,8 +18,9 @@ Config for the Postgres database used by the non-social API.
 
 ### Usage
 
-    psql -f database/structure.sql  # migrate database
-    psql -f database/dummy.sql      # insert dummy data for testing
+    psql -f database/structure.down.sql  # migrate database
+    psql -f database/structure.up.sql    # migrate database
+    psql -f database/dummy.sql           # insert dummy data for testing
 
 ## [Proxy](proxy/)
 Config for nginx proxy.
