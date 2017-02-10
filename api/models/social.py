@@ -5,6 +5,7 @@ import random
 import string
 import time
 from decimal import Decimal
+from urllib.parse import urlparse
 
 import boto3
 from boto3.dynamodb.conditions import Attr, Key, Not
@@ -22,6 +23,9 @@ AWS_SNS_SECRET_KEY = os.environ.get('AWS_SNS_SECRET_KEY')
 
 MAX_POSTS = 25
 PROFILE_PIC_BCKT = os.environ.get('PROFILE_PIC_BUCKET', 'calligre-profilepics')
+UPLOAD_BUCKET = os.environ.get('UPLOAD_BUCKET', 'calligre-images')
+RESIZE_BUCKET = os.environ.get('RESIZE_BUCKET',
+                               'calligre-images-pending-resize')
 EXT_POSTS_TOPIC = 'arn:aws:sns:us-west-2:037954390517:calligre-external-posts'
 
 log = logging.getLogger()
@@ -140,15 +144,14 @@ class SocialContentList(flask_restful.Resource):
         req.add_argument('post_tw', type=bool, location='json', default=False)
         args = req.parse_args()
 
+        # FIXME: Might want to validate that we get a valid URL, not just that
+        # it's non-empty
         if not (args.get('text') or args.get('media_link')):
             data = {'errors': [{
                 'title': 'client error',
                 'detail': 'missing text or a media URL.'}]}
             return data, flask_api.status.HTTP_400_BAD_REQUEST
 
-        # FIXME: URL mashing to detect the resize bucket usage & change to
-        # point at the non-resized bucket
-        # url parse & matching host?
         userid = _request_ctx_stack.top.current_user['sub']
         timestamp = Decimal(time.time())
         params = {
@@ -165,7 +168,22 @@ class SocialContentList(flask_restful.Resource):
             params['Item']['text'] = args.get('text')
 
         if args.get('media_link'):
-            params['Item']['media_link'] = args.get('media_link')
+            try:
+                u = urlparse(args.get('media_link'))
+                if u.netloc == "%s.s3.amazonaws.com" % RESIZE_BUCKET:
+                    params['Item']['media_link'] = \
+                        "https://%s.s3.amazonaws.com%s" % (
+                            UPLOAD_BUCKET,
+                            u.path
+                        )
+                    log.debug("Rewrote %s to %s",
+                              args.get('media_link'),
+                              params['Item']['media_link'])
+                else:
+                    params['Item']['media_link'] = args.get('media_link')
+            except Exception as ex:
+                log.error("Error parsing media link")
+                log.exception(ex)
 
         r, status = dynamo.put(params)
         if not flask_api.status.is_success(status):
@@ -241,7 +259,7 @@ class SocialContentUploadURL(flask_restful.Resource):
                          for _ in range(12))
         post_url = boto3.client('s3').generate_presigned_url(
             "put_object", {
-                "Bucket": 'calligre-images',
+                "Bucket": RESIZE_BUCKET,
                 "Key": '{}-{}'.format(userid.replace('|', '-'), suffix),
                 "ContentType": args['Content-Type']
             }
