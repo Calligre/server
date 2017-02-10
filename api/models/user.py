@@ -64,6 +64,9 @@ class UserList(flask_restful.Resource):
         req.add_argument('facebook', type=str, location='args', default=None)
         req.add_argument('linkedin', type=str, location='args', default=None)
         req.add_argument('twitter', type=str, location='args', default=None)
+
+        req.add_argument('capabilities', type=int, location='args',
+                         default=None)
         args = req.parse_args()
         args = {k: v for k, v in args.items() if v is not None}
 
@@ -93,17 +96,20 @@ class UserList(flask_restful.Resource):
         req.add_argument('facebook', type=str, location='json', default='')
         req.add_argument('linkedin', type=str, location='json', default='')
         req.add_argument('twitter', type=str, location='json', default='')
+
+        req.add_argument('capabilities', type=int, location='json', default=1)
         args = req.parse_args()
 
         return post('user',
                     """ INSERT INTO account (id, first_name, last_name, email,
                                              description, organization, photo,
                                              points, private, facebook,
-                                             linkedin, twitter)
+                                             linkedin, twitter, capabilities)
                         VALUES (%(id)s, %(first_name)s, %(last_name)s,
                                 %(email)s, %(description)s, %(organization)s,
                                 %(photo)s, %(points)s, %(private)s,
-                                %(facebook)s, %(twitter)s, %(linkedin)s)
+                                %(facebook)s, %(twitter)s, %(linkedin)s,
+                                %(capabilities)s)
                         RETURNING id """,
                     args)
 
@@ -140,6 +146,9 @@ class User(flask_restful.Resource):
         req.add_argument('facebook', type=str, location='json', default=None)
         req.add_argument('linkedin', type=str, location='json', default=None)
         req.add_argument('twitter', type=str, location='json', default=None)
+
+        req.add_argument('capabilities', type=int, location='json',
+                         default=None)
         args = req.parse_args()
 
         body, stat = get('user',
@@ -157,10 +166,10 @@ class User(flask_restful.Resource):
                      """ UPDATE account
                          SET (first_name, last_name, email, description,
                               organization, photo, points, private, facebook,
-                              linkedin, twitter) =
+                              linkedin, twitter, capabilities) =
                              (%(first_name)s, %(last_name)s, %(email)s,
                               %(description)s, %(organization)s, %(photo)s,
                               %(points)s, %(private)s, %(facebook)s,
-                              %(twitter)s, %(linkedin)s)
+                              %(twitter)s, %(linkedin)s, %(capabilities)s)
                          WHERE id = %(id)s """,
                      item)

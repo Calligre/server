@@ -1,17 +1,15 @@
+BEGIN;
+
 INSERT INTO account (id, first_name, last_name, email, organization, photo,
-                     points, facebook, twitter, linkedin, description)
+                     points, facebook, twitter, linkedin, description, capabilities)
     VALUES ('1', 'Clarisse', 'Schneider', 'clarissemschneider@gmail.com',
             'University of Waterloo', 'https://scontent-yyz1-1.xx.fbcdn.net/v/t1.0-1/c0.0.160.160/p160x160/13407145_10209959963904765_7384170056158382366_n.jpg?oh=10ede74cea8311ee19e790d58268db93&oe=57FD02A5',
             500, 'https://www.facebook.com/schneider.clarisse', 'https://twitter.com/claryschneider',
             'https://ca.linkedin.com/in/clarisse-schneider-03548627',
-            'Im so pumped to be working at SE Hack Day! #sehackday');
-INSERT INTO account (id, first_name, last_name, email, organization)
-    VALUES ('2', 'Adam', 'Key', 'adam@google.com', 'Google'),
-           ('adsku43oufo4ulf', 'Kadam', 'Ey', 'kadam@google.com', 'KGoogle');
-
-
-UPDATE capability SET admin = TRUE WHERE id = '1';
-UPDATE capability SET write = TRUE WHERE id IN ('1', '2');
+            'Im so pumped to be working at SE Hack Day! #sehackday', 7);
+INSERT INTO account (id, first_name, last_name, email, organization, capabilities)
+    VALUES ('2', 'Adam', 'Key', 'adam@google.com', 'Google', 3),
+           ('adsku43oufo4ulf', 'Kadam', 'Ey', 'kadam@google.com', 'KGoogle', 1);
 
 
 INSERT INTO info (name, logo, location, twitter, facebook, other, startTime, endTime)
@@ -38,3 +36,5 @@ INSERT INTO broadcast (message, expiryTime)
            ('And goodbye!', 1468130172),
            ('This broadcast is from 2016!', 1478217600),
            ('This is from 2017!', 1509753600);
+
+COMMIT;
