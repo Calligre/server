@@ -170,9 +170,9 @@ class SocialContentList(flask_restful.Resource):
         if args.get('media_link'):
             try:
                 u = urlparse(args.get('media_link'))
-                if u.netloc == "%s.s3.amazonaws.com" % RESIZE_BUCKET:
+                if u.netloc == "{}.s3.amazonaws.com".format(RESIZE_BUCKET):
                     params['Item']['media_link'] = \
-                        "https://%s.s3.amazonaws.com%s" % (
+                        "https://{}.s3.amazonaws.com{}".format(
                             UPLOAD_BUCKET,
                             u.path
                         )
