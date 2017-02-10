@@ -60,3 +60,5 @@ CREATE TABLE preference (
     twitter         boolean     NOT NULL DEFAULT TRUE,
     reposts         boolean     NOT NULL DEFAULT TRUE
 );
+
+COMMIT;
