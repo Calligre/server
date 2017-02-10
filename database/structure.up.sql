@@ -51,4 +51,12 @@ CREATE TABLE broadcast (
     expiryTime      bigint      NOT NULL
 );
 
-COMMIT;
+CREATE TABLE preference (
+    id              serial      PRIMARY KEY,             -- should only be one of these
+    cards           boolean     NOT NULL DEFAULT TRUE,
+    info            boolean     NOT NULL DEFAULT TRUE,
+    newsfeed        boolean     NOT NULL DEFAULT TRUE,
+    facebook        boolean     NOT NULL DEFAULT TRUE,
+    twitter         boolean     NOT NULL DEFAULT TRUE,
+    reposts         boolean     NOT NULL DEFAULT TRUE
+);

@@ -229,15 +229,25 @@ class SocialContentList(flask_restful.Resource):
 class SocialContentUploadURL(flask_restful.Resource):
     @requires_auth
     def get(self):
+        req = flask_restful.reqparse.RequestParser()
+        req.add_argument('Content-Type',
+                         type=str,
+                         location='args',
+                         required=True)
+        args = req.parse_args()
+
         userid = _request_ctx_stack.top.current_user['sub']
         suffix = ''.join(random.choice(string.ascii_uppercase + string.digits)
                          for _ in range(12))
-        post_url = boto3.client('s3').generate_presigned_post(
-            Bucket='calligre-images',
-            Key='{}-{}'.format(userid.replace('|', '-'), suffix)
+        post_url = boto3.client('s3').generate_presigned_url(
+            "put_object", {
+                "Bucket": 'calligre-images',
+                "Key": '{}-{}'.format(userid.replace('|', '-'), suffix),
+                "ContentType": args['Content-Type']
+            }
         )
 
-        return post_url, flask_api.status.HTTP_200_OK
+        return {'data': post_url}, flask_api.status.HTTP_200_OK
 
 
 class SingleSocialContent(flask_restful.Resource):
@@ -364,4 +374,4 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
         increment_points(userid)
 
-        return dynamo.put(params)
+        return dynamo.patch(params)

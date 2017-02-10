@@ -9,6 +9,7 @@ import api.auth
 import api.models.broadcast
 import api.models.event
 import api.models.info
+import api.models.preference
 import api.models.social
 import api.models.subscription
 import api.models.user
@@ -33,6 +34,8 @@ restful.add_resource(api.models.event.EventUserList,
                      '/user/<uid>/subscribed')
 
 restful.add_resource(api.models.info.Info, '/info')
+
+restful.add_resource(api.models.preference.Preference, '/preference')
 
 restful.add_resource(api.models.social.SocialContentList, '/social')
 restful.add_resource(api.models.social.SocialContentUploadURL,
@@ -79,7 +82,7 @@ def me():
         return user, flask_api.status.HTTP_200_OK
 
     user, code = get_current_user()
-    data = {'data': {'id': user['sub']}}
+    data = {'data': {'id': user['sub'], 'type': 'user'}}
     return flask.jsonify(data), code
 
 

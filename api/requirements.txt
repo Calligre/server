@@ -1,8 +1,9 @@
-cryptography==1.5
 boto3==1.4.1
-flask==0.11.1
+cryptography==1.5
 flask-api==0.6.7
 flask-restful==0.3.5
+flask==0.11.1
+gunicorn==19.6.0
 psycopg2==2.6.2
 pyjwt==1.4.2
 requests==2.10.0
