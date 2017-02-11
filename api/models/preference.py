@@ -52,7 +52,7 @@ class Preference(flask_restful.Resource):
         return patch('preference',
                      """ UPDATE preference
                          SET (cards, info, newsfeed, facebook, twitter,
-                              reposts, endtime) =
+                              reposts) =
                              (%(cards)s, %(info)s, %(newsfeed)s, %(facebook)s,
                               %(twitter)s, %(reposts)s)
                          WHERE id = %(id)s """,
