@@ -73,12 +73,12 @@ class Info(flask_restful.Resource):
                      """ UPDATE info
                          SET (name, organization, logo, logo_square, icon,
                               color_primary, color_secondary, location, other,
-                              facebook, twitter, starttime, endtime)
-                         VALUES (%(name)s, %(organization)s, %(logo)s,
-                                 %(logo_square)s, %(icon)s, %(color_primary)s,
-                                 %(color_secondary)s, %(location)s, %(other)s,
-                                 %(facebook)s, %(twitter)s, %(starttime)s,
-                                 %(endtime)s)
+                              facebook, twitter, starttime, endtime) =
+                             (%(name)s, %(organization)s, %(logo)s,
+                              %(logo_square)s, %(icon)s, %(color_primary)s,
+                              %(color_secondary)s, %(location)s, %(other)s,
+                              %(facebook)s, %(twitter)s, %(starttime)s,
+                              %(endtime)s)
                          WHERE id = %(id)s """,
                      item)
 
