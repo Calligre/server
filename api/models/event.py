@@ -10,6 +10,11 @@ from api.database import delete, get, gets, patch, post
 class EventList(flask_restful.Resource):
     @requires_auth
     def get(self):
+        """{"args": {"name": "(str, default=None)",
+                     "location": "(str, default=None)",
+                     "stream": "(int, default=None)",
+                     "starttime": "(int, default=None)",
+                     "endtime": "(int, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('name', type=str, location='args', default=None)
 
@@ -27,6 +32,12 @@ class EventList(flask_restful.Resource):
 
     @requires_auth
     def post(self):
+        """{"json": {"name": "(str, required)",
+                     "description": "(str, default='')",
+                     "location": "(str, default='')",
+                     "stream": "(int, default=0)",
+                     "starttime": "(int, required)",
+                     "endtime": "(int, required)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('name', type=str, location='json', required=True)
 
@@ -72,6 +83,12 @@ class Event(flask_restful.Resource):
 
     @requires_auth
     def patch(self, eid):
+        """{"json": {"name": "(str, default=None)",
+                     "description": "(str, default=None)",
+                     "location": "(str, default=None)",
+                     "stream": "(int, default=None)",
+                     "starttime": "(int, default=None)",
+                     "endtime": "(int, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('name', type=str, location='json', default=None)
 

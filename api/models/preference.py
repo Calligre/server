@@ -22,6 +22,12 @@ class Preference(flask_restful.Resource):
 
     @requires_auth
     def patch(self):
+        """{"json": {"cards": "(bool, default=None)",
+                     "info": "(bool, default=None)",
+                     "newfeed": "(bool, default=None)",
+                     "facebook": "(bool, default=None)",
+                     "twitter": "(bool, default=None)",
+                     "reposts": "(bool, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('cards', type=bool, location='json', default=None)
         req.add_argument('info', type=bool, location='json', default=None)
@@ -54,6 +60,12 @@ class Preference(flask_restful.Resource):
 
     @requires_auth
     def post(self):
+        """{"json": {"cards": "(bool, default=True)",
+                     "info": "(bool, default=True)",
+                     "newsfeed": "(bool, default=True)",
+                     "facebook": "(bool, default=True)",
+                     "twitter": "(bool, default=True)",
+                     "reposts": "(bool, default=True)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('cards', type=bool, location='json', default=True)
         req.add_argument('info', type=bool, location='json', default=True)
