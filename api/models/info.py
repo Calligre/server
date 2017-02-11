@@ -44,9 +44,7 @@ class Info(flask_restful.Resource):
         req.add_argument('endtime', type=int, location='json', default=None)
         args = req.parse_args()
 
-        body, stat = get('info',
-                         'SELECT * FROM info WHERE id = %(iid)s',
-                         {'iid': 1})
+        body, stat = self.get()
         if stat != flask_api.status.HTTP_200_OK:
             return body, stat
 
