@@ -1,6 +1,6 @@
 # Server
-"Everything" backend for Calligre -- note that social content is currently
-managed as
+"Everything" backend for Calligre -- note that some stuff (ie. image resizing)
+is currently managed as
 [Dynamo/Lambda functions](https://github.com/calligre/lambda-functions).
 
 ## [API](api/)
