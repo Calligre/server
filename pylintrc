@@ -1,5 +1,12 @@
 [MESSAGESCONTROL]
 disable=C0103,C0111,F0401,W0703
 
+[SIMILARITIES]
+min-similarity-lines=8
+
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes
+
 [MISCELLANEOUS]
 notes=
