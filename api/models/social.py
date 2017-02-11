@@ -90,6 +90,8 @@ def decrement_points(req_userid):
 class SocialContentList(flask_restful.Resource):
     @requires_auth
     def get(self):
+        """{"args": {"limit": "(int, default=25)",
+                     "offset": "(float, required)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
         req.add_argument('offset', type=float, location='args', required=False)
@@ -137,6 +139,10 @@ class SocialContentList(flask_restful.Resource):
 
     @requires_auth
     def post(self):
+        """{"json": {"text": "(str, default=None)",
+                     "media_link": "(str, default=None)",
+                     "post_fb": "(bool, default=False)",
+                     "post_tw": "(bool, default=False)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('text', type=str, location='json', default=None)
         req.add_argument('media_link', type=str, location='json', default=None)
@@ -247,6 +253,7 @@ class SocialContentList(flask_restful.Resource):
 class SocialContentUploadURL(flask_restful.Resource):
     @requires_auth
     def get(self):
+        """{"args": {"Content-Type": "(str, required)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('Content-Type',
                          type=str,

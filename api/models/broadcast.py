@@ -10,6 +10,7 @@ from api.database import delete, get, gets, patch, post
 class BroadcastList(flask_restful.Resource):
     @requires_auth
     def get(self):
+        """{"args": {"expirytime": "(int, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('expirytime', type=int, location='args', default=None)
         args = req.parse_args()
@@ -22,6 +23,8 @@ class BroadcastList(flask_restful.Resource):
 
     @requires_auth
     def post(self):
+        """{"json": {"message": "(str, required)",
+                     "expirytime": "(int, required)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('message', type=str, location='json', required=True)
         req.add_argument('expirytime', type=int, location='json',
@@ -50,6 +53,8 @@ class Broadcast(flask_restful.Resource):
 
     @requires_auth
     def patch(self, bid):
+        """{"json": {"message": "(str, default=None)",
+                     "expirytime": "(int, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('message', type=str, location='json', default=None)
         req.add_argument('expirytime', type=int, location='json', default=None)

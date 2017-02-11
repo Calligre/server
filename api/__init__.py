@@ -1,3 +1,5 @@
+import collections
+import json
 import os
 
 import flask
@@ -61,15 +63,29 @@ restful.add_resource(api.models.user.UserPhoto, '/user/<uid>/photo')
 @app.route('/api')
 def spec():
     data = {'meta': dict()}
-
     for rule in flask.current_app.url_map.iter_rules():
         if rule.endpoint == 'static':
             continue
 
-        data['meta'][rule.rule] = sorted([m for m in rule.methods
-                                          if m not in ('HEAD', 'OPTIONS')])
+        methods = sorted([m for m in rule.methods
+                          if m not in ('HEAD', 'OPTIONS')])
+        methods = collections.OrderedDict.fromkeys(methods)
 
-    return flask.jsonify(data), flask_api.status.HTTP_500_INTERNAL_SERVER_ERROR
+        for method in methods:
+            try:
+                cls = app.view_functions[rule.endpoint].view_class
+            except AttributeError:
+                continue
+
+            fn = getattr(cls, method.lower())
+            try:
+                methods[method] = json.loads(fn.__doc__ or {})
+            except Exception:
+                pass
+
+        data['meta'][rule.rule] = methods
+
+    return flask.jsonify(data), flask_api.status.HTTP_200_OK
 
 
 @app.route('/api/me')

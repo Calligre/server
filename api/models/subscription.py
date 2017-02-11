@@ -16,6 +16,7 @@ class SubscriptionEventList(flask_restful.Resource):
 
     @requires_auth
     def post(self, eid):
+        """{"json": {"user_id": "(int, required)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('user_id', type=int, location='json', required=True)
         args = req.parse_args()
@@ -37,6 +38,7 @@ class SubscriptionUserList(flask_restful.Resource):
 
     @requires_auth
     def post(self, uid):
+        """{"json": {"event_id": "(int, required)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('event_id', type=int, location='json', required=True)
         args = req.parse_args()

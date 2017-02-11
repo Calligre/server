@@ -17,6 +17,7 @@ PROFILE_PIC_BCKT = os.environ.get("PROFILE_PIC_BUCKET", "calligre-profilepics")
 class UserPhoto(flask_restful.Resource):
     @requires_auth
     def put(self, uid):
+        """{"json": {"data": "(str, required)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('data', type=str, location='json', required=True)
         args = req.parse_args()
@@ -47,6 +48,18 @@ class UserPhoto(flask_restful.Resource):
 class UserList(flask_restful.Resource):
     @requires_auth
     def get(self):
+        """{"args": {"first_name": "(str, default=None)",
+                     "last_name": "(str, default=None)",
+                     "email": "(str, default=None)",
+                     "description": "(str, default=None)",
+                     "organization": "(str, default=None)",
+                     "photo": "(str, default=None)",
+                     "points": "(int, default=None)",
+                     "private": "(bool, default=None)",
+                     "facebook": "(str, default=None)",
+                     "linkedin": "(str, default=None)",
+                     "twitter": "(str, default=None)",
+                     "capabilities": "(int, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('first_name', type=str, location='args', default=None)
         req.add_argument('last_name', type=str, location='args', default=None)
@@ -77,6 +90,19 @@ class UserList(flask_restful.Resource):
 
     @requires_auth
     def post(self):
+        """{"json": {"id": "(str, required)",
+                     "first_name": "(str, required)",
+                     "last_name": "(str, required)",
+                     "email": "(str, required)",
+                     "description": "(str, default='')",
+                     "organization": "(str, default='')",
+                     "photo": "(str, default='default.gif')",
+                     "points": "(int, default=0)",
+                     "private": "(bool, default=False)",
+                     "facebook": "(str, default='')",
+                     "linkedin": "(str, default='')",
+                     "twitter": "(str, default='')",
+                     "capabilities": "(int, default=1)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('id', type=str, location='json', required=True)
         req.add_argument('first_name', type=str, location='json',
@@ -129,6 +155,18 @@ class User(flask_restful.Resource):
 
     @requires_auth
     def patch(self, uid):
+        """{"json": {"first_name": "(str, default=None)",
+                     "last_name": "(str, default=None)",
+                     "email": "(str, default=None)",
+                     "description": "(str, default=None)",
+                     "organization": "(str, default=None)",
+                     "photo": "(str, default=None)",
+                     "points": "(int, default=None)",
+                     "private": "(bool, default=None)",
+                     "facebook": "(str, default=None)",
+                     "linkedin": "(str, default=None)",
+                     "twitter": "(str, default=None)",
+                     "capabilities": "(int, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('first_name', type=str, location='json', default=None)
         req.add_argument('last_name', type=str, location='json', default=None)

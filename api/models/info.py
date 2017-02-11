@@ -22,6 +22,14 @@ class Info(flask_restful.Resource):
 
     @requires_auth
     def patch(self):
+        """{"json": {"name": "(str, default=None)",
+                     "logo": "(str, default=None)",
+                     "location": "(str, default=None)",
+                     "other": "(str, default=None)",
+                     "facebook": "(str, default=None)",
+                     "twitter": "(str, default=None)",
+                     "starttime": "(int, default=None)",
+                     "endtime": "(int, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('name', type=str, location='json', default=None)
 
@@ -59,6 +67,14 @@ class Info(flask_restful.Resource):
 
     @requires_auth
     def post(self):
+        """{"json": {"name": "(str, required)",
+                     "logo": "(str, default='')",
+                     "location": "(str, default='')",
+                     "other": "(str, default='')",
+                     "facebook": "(str, default='')",
+                     "twitter": "(str, default='')",
+                     "starttime": "(int, required)",
+                     "endtime": "(int, required)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('name', type=str, location='json', required=True)
 
