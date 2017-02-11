@@ -27,6 +27,7 @@ INSERT INTO event (name, description, stream, location, startTime, endTime)
            ('Another Stream,', 'This event is in another stream', 12, 'That one place', 1468162800, 1468166400),
            ('No Description', '', 7, 'That one place', 1468162800, 1468166400);
 
+
 INSERT INTO preference (cards, info, newsfeed, facebook, twitter, reposts) VALUES (TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);
 
 
