@@ -13,7 +13,7 @@ INSERT INTO account (id, first_name, last_name, email, organization, capabilitie
 
 
 INSERT INTO info (name, organization, logo, location, twitter, facebook, other, startTime, endTime)
-    VALUES ('SE Hackday', 'Anonymoose', 'http://se.hackday.ca/assets/logo-white-0b4035ad70a69a2ffe9f254c53d11b16.png',
+    VALUES ('SE Hackday', 'Anonymoose', 'https://static1.squarespace.com/static/5141f98de4b01238136e109c/t/55cce2d9e4b00c260f1f40e4/1439490779089/librato-hack-day',
             'Multimedia lab', 'https://twitter.com', 'https://facebook.com',
             'Come out, do a project, and show us what ya got!', 1468120162, 1468226562);
 
