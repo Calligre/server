@@ -1,22 +1,27 @@
 BEGIN;
 
 CREATE TABLE info (
-    id              serial      PRIMARY KEY,             -- should only be one of these
-    name            text        NOT NULL,
-    logo            text        NOT NULL DEFAULT '',     -- URL
-    location        text        NOT NULL DEFAULT '',
-    twitter         text        NOT NULL DEFAULT '',
-    facebook        text        NOT NULL DEFAULT '',
-    other           text        NOT NULL DEFAULT '',
-    startTime       bigint      NOT NULL,
-    endTime         bigint      NOT NULL
+    id                serial      PRIMARY KEY,             -- should only be one of these
+    name              text        NOT NULL,
+    organization      text        NOT NULL,
+    logo              text        NOT NULL DEFAULT '',     -- URL
+    logo_square       text        NOT NULL DEFAULT '',     -- URL
+    icon              text        NOT NULL DEFAULT '',     -- URL
+    color_primary     text        NOT NULL DEFAULT '#000',
+    color_secondary   text        NOT NULL DEFAULT '#000',
+    location          text        NOT NULL DEFAULT '',
+    twitter           text        NOT NULL DEFAULT '',
+    facebook          text        NOT NULL DEFAULT '',
+    other             text        NOT NULL DEFAULT '',
+    startTime         bigint      NOT NULL,
+    endTime           bigint      NOT NULL
 );
 
 CREATE TABLE event (
     id              serial      PRIMARY KEY,
     name            text        NOT NULL,
     description     text        NOT NULL DEFAULT '',
-    stream          integer     NOT NULL DEFAULT 1,      -- 1-indexed for Organizer usage
+    stream          integer     NOT NULL DEFAULT 1,        -- 1-indexed for Organizer usage
     location        text        NOT NULL DEFAULT '',
     startTime       bigint      NOT NULL,
     endTime         bigint      NOT NULL
@@ -36,7 +41,7 @@ CREATE TABLE account (
     description     text        NOT NULL DEFAULT '',
     private         boolean     NOT NULL DEFAULT FALSE,
     capabilities    integer     NOT NULL DEFAULT 1
-        CHECK (0 < capabilities AND capabilities < 8)     -- 1: read, 2: write, 4: admin
+        CHECK (0 < capabilities AND capabilities < 8)       -- 1: read, 2: write, 4: admin
 );
 
 CREATE TABLE subscription (
@@ -52,7 +57,7 @@ CREATE TABLE broadcast (
 );
 
 CREATE TABLE preference (
-    id              serial      PRIMARY KEY,             -- should only be one of these
+    id              serial      PRIMARY KEY,               -- should only be one of these
     cards           boolean     NOT NULL DEFAULT TRUE,
     info            boolean     NOT NULL DEFAULT TRUE,
     newsfeed        boolean     NOT NULL DEFAULT TRUE,
