@@ -85,9 +85,7 @@ class Event(flask_restful.Resource):
         args = req.parse_args()
         args = {k: v for k, v in args.items() if v is not None}
 
-        body, stat = get('event',
-                         'SELECT * FROM event WHERE id = %(eid)s',
-                         {'eid': eid})
+        body, stat = self.get(eid)
         if stat != flask_api.status.HTTP_200_OK:
             return body, stat
 

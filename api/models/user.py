@@ -151,9 +151,7 @@ class User(flask_restful.Resource):
                          default=None)
         args = req.parse_args()
 
-        body, stat = get('user',
-                         'SELECT * FROM account WHERE id = %(uid)s',
-                         {'uid': uid})
+        body, stat = self.get(uid)
         if stat != flask_api.status.HTTP_200_OK:
             return body, stat
 
