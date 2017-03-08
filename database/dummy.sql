@@ -19,13 +19,13 @@ INSERT INTO info (name, organization, logo, location, twitter, facebook, other, 
 
 
 INSERT INTO event (name, description, stream, location, startTime, endTime)
-    VALUES ('Event Creation', 'This a gathering of developers working to create dummy data for displaying events', '7', 'That one place', 1468162800, 1468166400),
-           ('Tomorrow', 'This event happens tomorrow', '7', 'That one place', 1468249740, 1468253340),
-           ('Yesterday', 'This event happened yesterday', '7', 'That one place', 1468076940, 1468080540),
-           ('All Day', 'This event lasts all day', '7', 'That one place', 1468162800, 1468195200),
-           ('Broken', 'This event is broken', '7', 'That one place', 1468195200, 1468162800),
-           ('Another Stream,', 'This event is in another stream', '12', 'That one place', 1468162800, 1468166400),
-           ('No Description', '', '7', 'That one place', 1468162800, 1468166400);
+    VALUES ('Event Creation', 'This a gathering of developers working to create dummy data for displaying events', 'workshops', 'That one place', 1468162800, 1468166400),
+           ('Tomorrow', 'This event happens tomorrow', 'workshops', 'That one place', 1468249740, 1468253340),
+           ('Yesterday', 'This event happened yesterday', 'workshops', 'That one place', 1468076940, 1468080540),
+           ('All Day', 'This event lasts all day', 'workshops', 'That one place', 1468162800, 1468195200),
+           ('Broken', 'This event is broken', 'workshops', 'That one place', 1468195200, 1468162800),
+           ('Another Stream,', 'This event is in another stream', 'food', 'That one place', 1468162800, 1468166400),
+           ('No Description', '', 'workshops', 'That one place', 1468162800, 1468166400);
 
 
 INSERT INTO preference (cards, info, newsfeed, facebook, twitter, reposts) VALUES (TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);
