@@ -12,14 +12,14 @@ class EventList(flask_restful.Resource):
     def get(self):
         """{"args": {"name": "(str, default=None)",
                      "location": "(str, default=None)",
-                     "stream": "(int, default=None)",
+                     "stream": "(str, default=None)",
                      "starttime": "(int, default=None)",
                      "endtime": "(int, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('name', type=str, location='args', default=None)
 
         req.add_argument('location', type=str, location='args', default=None)
-        req.add_argument('stream', type=int, location='args', default=None)
+        req.add_argument('stream', type=str, location='args', default=None)
 
         req.add_argument('starttime', type=int, location='args', default=None)
         req.add_argument('endtime', type=int, location='args', default=None)
@@ -35,7 +35,7 @@ class EventList(flask_restful.Resource):
         """{"json": {"name": "(str, required)",
                      "description": "(str, default='')",
                      "location": "(str, default='')",
-                     "stream": "(int, default=0)",
+                     "stream": "(str, default=0)",
                      "starttime": "(int, required)",
                      "endtime": "(int, required)"}}"""
         req = flask_restful.reqparse.RequestParser()
@@ -43,7 +43,7 @@ class EventList(flask_restful.Resource):
 
         req.add_argument('description', type=str, location='json', default='')
         req.add_argument('location', type=str, location='json', default='')
-        req.add_argument('stream', type=int, location='json', default=0)
+        req.add_argument('stream', type=str, location='json', default=0)
 
         req.add_argument('starttime', type=int, location='json', required=True)
         req.add_argument('endtime', type=int, location='json', required=True)
@@ -86,7 +86,7 @@ class Event(flask_restful.Resource):
         """{"json": {"name": "(str, default=None)",
                      "description": "(str, default=None)",
                      "location": "(str, default=None)",
-                     "stream": "(int, default=None)",
+                     "stream": "(str, default=None)",
                      "starttime": "(int, default=None)",
                      "endtime": "(int, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
@@ -95,7 +95,7 @@ class Event(flask_restful.Resource):
         req.add_argument('description', type=str, location='json',
                          default=None)
         req.add_argument('location', type=str, location='json', default=None)
-        req.add_argument('stream', type=int, location='json', default=None)
+        req.add_argument('stream', type=str, location='json', default=None)
 
         req.add_argument('starttime', type=int, location='json', default=None)
         req.add_argument('endtime', type=int, location='json', default=None)

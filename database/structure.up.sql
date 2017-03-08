@@ -21,7 +21,7 @@ CREATE TABLE event (
     id              serial      PRIMARY KEY,
     name            text        NOT NULL,
     description     text        NOT NULL DEFAULT '',
-    stream          integer     NOT NULL DEFAULT 1,        -- 1-indexed for Organizer usage
+    stream          text        NOT NULL DEFAULT 'Default',
     location        text        NOT NULL DEFAULT '',
     startTime       bigint      NOT NULL,
     endTime         bigint      NOT NULL
