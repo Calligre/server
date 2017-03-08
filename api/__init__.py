@@ -13,6 +13,7 @@ import api.models.event
 import api.models.info
 import api.models.preference
 import api.models.social
+import api.models.stream
 import api.models.subscription
 import api.models.user
 
@@ -46,6 +47,8 @@ restful.add_resource(api.models.social.SingleSocialContent,
                      '/social/<float:postid>')
 restful.add_resource(api.models.social.SingleSocialContentLikes,
                      '/social/<float:postid>/likes')
+
+restful.add_resource(api.models.stream.StreamList, '/stream')
 
 restful.add_resource(api.models.subscription.Subscription,
                      '/user/<uid>/subscription/<int:eid>',
