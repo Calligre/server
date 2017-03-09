@@ -9,8 +9,11 @@ import flask_restful
 
 import api.auth
 import api.models.broadcast
+import api.models.card
+import api.models.contact
 import api.models.event
 import api.models.info
+import api.models.location
 import api.models.preference
 import api.models.social
 import api.models.stream
@@ -37,6 +40,12 @@ restful.add_resource(api.models.event.EventUserList,
                      '/user/<uid>/subscribed')
 
 restful.add_resource(api.models.info.Info, '/info')
+restful.add_resource(api.models.card.Card, '/info/card/<int:cid>')
+restful.add_resource(api.models.card.CardList, '/info/card')
+restful.add_resource(api.models.contact.Contact, '/info/contact/<int:cid>')
+restful.add_resource(api.models.contact.ContactList, '/info/contact')
+restful.add_resource(api.models.location.Location, '/info/location/<int:lid>')
+restful.add_resource(api.models.location.LocationList, '/info/location')
 
 restful.add_resource(api.models.preference.Preference, '/preference')
 

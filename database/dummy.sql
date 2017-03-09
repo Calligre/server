@@ -12,10 +12,16 @@ INSERT INTO account (id, first_name, last_name, email, organization, capabilitie
            ('adsku43oufo4ulf', 'Kadam', 'Ey', 'kadam@google.com', 'KGoogle', 1);
 
 
-INSERT INTO info (name, organization, logo, location, twitter, facebook, other, startTime, endTime)
+INSERT INTO info (name, organization, logo, twitter, facebook, startTime, endTime)
     VALUES ('SE Hackday', 'Anonymoose', 'https://static1.squarespace.com/static/5141f98de4b01238136e109c/t/55cce2d9e4b00c260f1f40e4/1439490779089/librato-hack-day',
-            'Multimedia lab', 'https://twitter.com', 'https://facebook.com',
-            'Come out, do a project, and show us what ya got!', 1468120162, 1468226562);
+            'https://twitter.com', 'https://facebook.com', 1468120162, 1468226562);
+INSERT INTO card (info_id, data)
+    VALUES (1, 'Come out, do a project, and show us what ya got!');
+INSERT INTO contact (info_id, name, phone)
+    VALUES (1, 'Jenny', '867-5309');
+INSERT INTO location (info_id, name, address)
+    VALUES (1, 'Home Base', 'Multimedia Lab'),
+           (1, 'Workshops', 'SE Lounge');
 
 
 INSERT INTO event (name, description, stream, location, startTime, endTime)

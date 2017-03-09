@@ -23,13 +23,14 @@ class Info(flask_restful.Resource):
     def patch(self):
         """{"json": {"name": "(str, default=None)",
                      "organization": "(str, default=None)",
+                     "map": "(str, default=None)",
+                     "package": "(str, default=None)",
                      "logo": "(str, default=None)",
                      "logo_square": "(str, default=None)",
+                     "background_logo": "(str, default=None)",
                      "icon": "(str, default=None)",
                      "color_primary": "(str, default=None)",
                      "color_secondary": "(str, default=None)",
-                     "location": "(str, default=None)",
-                     "other": "(str, default=None)",
                      "facebook": "(str, default=None)",
                      "twitter": "(str, default=None)",
                      "starttime": "(int, default=None)",
@@ -39,8 +40,13 @@ class Info(flask_restful.Resource):
         req.add_argument('organization', type=str, location='json',
                          default=None)
 
+        req.add_argument('map', type=str, location='json', default=None)
+        req.add_argument('package', type=str, location='json', default=None)
+
         req.add_argument('logo', type=str, location='json', default=None)
         req.add_argument('logo_square', type=str, location='json',
+                         default=None)
+        req.add_argument('background_logo', type=str, location='json',
                          default=None)
         req.add_argument('icon', type=str, location='json', default=None)
 
@@ -48,9 +54,6 @@ class Info(flask_restful.Resource):
                          default=None)
         req.add_argument('color_secondary', type=str, location='json',
                          default=None)
-
-        req.add_argument('location', type=str, location='json', default=None)
-        req.add_argument('other', type=str, location='json', default=None)
 
         req.add_argument('facebook', type=str, location='json', default=None)
         req.add_argument('twitter', type=str, location='json', default=None)
@@ -70,12 +73,13 @@ class Info(flask_restful.Resource):
 
         return patch('info',
                      """ UPDATE info
-                         SET (name, organization, logo, logo_square, icon,
-                              color_primary, color_secondary, location, other,
-                              facebook, twitter, starttime, endtime) =
-                             (%(name)s, %(organization)s, %(logo)s,
-                              %(logo_square)s, %(icon)s, %(color_primary)s,
-                              %(color_secondary)s, %(location)s, %(other)s,
+                         SET (name, organization, map, package, logo,
+                              logo_square, background_logo, icon,
+                              color_primary, color_secondary, facebook,
+                              twitter, starttime, endtime) =
+                             (%(name)s, %(organization)s, %(map)s, %(package)s,
+                              %(logo)s, %(logo_square)s, %(background_logo)s,
+                              %(icon)s, %(color_primary)s, %(color_secondary)s,
                               %(facebook)s, %(twitter)s, %(starttime)s,
                               %(endtime)s)
                          WHERE id = %(id)s """,
@@ -85,13 +89,14 @@ class Info(flask_restful.Resource):
     def post(self):
         """{"json": {"name": "(str, required)",
                      "organization": "(str, required)",
+                     "map": "(str, default='')",
+                     "package": "(str, default='')",
                      "logo": "(str, default='')",
                      "logo_square": "(str, default='')",
+                     "background_logo": "(str, default='')",
                      "icon": "(str, default='')",
                      "color_primary": "(str, default='')",
                      "color_secondary": "(str, default='')",
-                     "location": "(str, default='')",
-                     "other": "(str, default='')",
                      "facebook": "(str, default='')",
                      "twitter": "(str, default='')",
                      "starttime": "(int, required)",
@@ -101,17 +106,19 @@ class Info(flask_restful.Resource):
         req.add_argument('organization', type=str, location='json',
                          required=True)
 
+        req.add_argument('map', type=str, location='json', default='')
+        req.add_argument('package', type=str, location='json', default='')
+
         req.add_argument('logo', type=str, location='json', default='')
         req.add_argument('logo_square', type=str, location='json', default='')
+        req.add_argument('background_logo', type=str, location='json',
+                         default='')
         req.add_argument('icon', type=str, location='json', default='')
 
         req.add_argument('color_primary', type=str, location='json',
                          default='')
         req.add_argument('color_secondary', type=str, location='json',
                          default='')
-
-        req.add_argument('location', type=str, location='json', default='')
-        req.add_argument('other', type=str, location='json', default='')
 
         req.add_argument('facebook', type=str, location='json', default='')
         req.add_argument('twitter', type=str, location='json', default='')
@@ -121,15 +128,15 @@ class Info(flask_restful.Resource):
         args = req.parse_args()
 
         return post('info',
-                    """ INSERT INTO info (name, organization, logo,
-                                          logo_square, icon, color_primary,
-                                          color_secondary, location, other,
+                    """ INSERT INTO info (name, organization, map, package,
+                                          logo, logo_square, background_logo
+                                          icon, color_primary, color_secondary,
                                           facebook, twitter, starttime,
                                           endtime)
-                        VALUES (%(name)s, %(organization)s, %(logo)s,
-                                %(logo_square)s, %(icon)s, %(color_primary)s,
-                                %(color_secondary)s, %(location)s, %(other)s,
-                                %(facebook)s, %(twitter)s, %(starttime)s,
-                                %(endtime)s)
+                        VALUES (%(name)s, %(organization)s, %(map)s,
+                                %(package)s, %(logo)s, %(logo_square)s,
+                                %(icon)s, %(color_primary)s,
+                                %(color_secondary)s, %(facebook)s, %(twitter)s,
+                                %(starttime)s, %(endtime)s)
                         RETURNING id """,
                     args)
