@@ -14,7 +14,6 @@ class Info(flask_restful.Resource):
                       'DELETE FROM info WHERE id = %(iid)s',
                       {'iid': 1})
 
-    @requires_auth
     def get(self):
         return get('info',
                    'SELECT * FROM info WHERE id = %(iid)s',
