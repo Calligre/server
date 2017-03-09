@@ -32,8 +32,6 @@ class Info(flask_restful.Resource):
                      "icon": "(str, default=None)",
                      "color_primary": "(str, default=None)",
                      "color_secondary": "(str, default=None)",
-                     "location": "(str, default=None)",
-                     "other": "(str, default=None)",
                      "facebook": "(str, default=None)",
                      "twitter": "(str, default=None)",
                      "starttime": "(int, default=None)",
@@ -58,9 +56,6 @@ class Info(flask_restful.Resource):
         req.add_argument('color_secondary', type=str, location='json',
                          default=None)
 
-        req.add_argument('location', type=str, location='json', default=None)
-        req.add_argument('other', type=str, location='json', default=None)
-
         req.add_argument('facebook', type=str, location='json', default=None)
         req.add_argument('twitter', type=str, location='json', default=None)
 
@@ -81,13 +76,13 @@ class Info(flask_restful.Resource):
                      """ UPDATE info
                          SET (name, organization, map, package, logo,
                               logo_square, background_logo, icon,
-                              color_primary, color_secondary, location, other,
-                              facebook, twitter, starttime, endtime) =
+                              color_primary, color_secondary, facebook,
+                              twitter, starttime, endtime) =
                              (%(name)s, %(organization)s, %(map)s, %(package)s,
                               %(logo)s, %(logo_square)s, %(background_logo)s,
                               %(icon)s, %(color_primary)s, %(color_secondary)s,
-                              %(location)s, %(other)s, %(facebook)s,
-                              %(twitter)s, %(starttime)s, %(endtime)s)
+                              %(facebook)s, %(twitter)s, %(starttime)s,
+                              %(endtime)s)
                          WHERE id = %(id)s """,
                      item)
 
@@ -103,8 +98,6 @@ class Info(flask_restful.Resource):
                      "icon": "(str, default='')",
                      "color_primary": "(str, default='')",
                      "color_secondary": "(str, default='')",
-                     "location": "(str, default='')",
-                     "other": "(str, default='')",
                      "facebook": "(str, default='')",
                      "twitter": "(str, default='')",
                      "starttime": "(int, required)",
@@ -128,9 +121,6 @@ class Info(flask_restful.Resource):
         req.add_argument('color_secondary', type=str, location='json',
                          default='')
 
-        req.add_argument('location', type=str, location='json', default='')
-        req.add_argument('other', type=str, location='json', default='')
-
         req.add_argument('facebook', type=str, location='json', default='')
         req.add_argument('twitter', type=str, location='json', default='')
 
@@ -142,13 +132,12 @@ class Info(flask_restful.Resource):
                     """ INSERT INTO info (name, organization, map, package,
                                           logo, logo_square, background_logo
                                           icon, color_primary, color_secondary,
-                                          location, other, facebook, twitter,
-                                          starttime, endtime)
+                                          facebook, twitter, starttime,
+                                          endtime)
                         VALUES (%(name)s, %(organization)s, %(map)s,
                                 %(package)s, %(logo)s, %(logo_square)s,
                                 %(icon)s, %(color_primary)s,
-                                %(color_secondary)s, %(location)s, %(other)s,
-                                %(facebook)s, %(twitter)s, %(starttime)s,
-                                %(endtime)s)
+                                %(color_secondary)s, %(facebook)s, %(twitter)s,
+                                %(starttime)s, %(endtime)s)
                         RETURNING id """,
                     args)

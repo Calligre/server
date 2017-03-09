@@ -1,24 +1,42 @@
 BEGIN;
 
 CREATE TABLE info (
-    id                serial      PRIMARY KEY,             -- should only be one of these
-    name              text        NOT NULL,
-    organization      text        NOT NULL,
-    map               text        NOT NULL DEFAULT '',     -- URL
-    package           text        NOT NULL DEFAULT '',     -- URL
-    background_logo   text        NOT NULL DEFAULT '',     -- URL
-    logo              text        NOT NULL DEFAULT '',     -- URL
-    logo_square       text        NOT NULL DEFAULT '',     -- URL
-    icon              text        NOT NULL DEFAULT '',     -- URL
-    color_primary     text        NOT NULL DEFAULT '#000',
-    color_secondary   text        NOT NULL DEFAULT '#000',
-    location          text        NOT NULL DEFAULT '',
-    twitter           text        NOT NULL DEFAULT '',
-    facebook          text        NOT NULL DEFAULT '',
-    other             text        NOT NULL DEFAULT '',
-    startTime         bigint      NOT NULL,
-    endTime           bigint      NOT NULL
+    id              serial      PRIMARY KEY,             -- should only be one of these
+    name            text        NOT NULL,
+    organization    text        NOT NULL,
+    map             text        NOT NULL DEFAULT '',     -- URL
+    package         text        NOT NULL DEFAULT '',     -- URL
+    background_logo text        NOT NULL DEFAULT '',     -- URL
+    logo            text        NOT NULL DEFAULT '',     -- URL
+    logo_square     text        NOT NULL DEFAULT '',     -- URL
+    icon            text        NOT NULL DEFAULT '',     -- URL
+    color_primary   text        NOT NULL DEFAULT '#000',
+    color_secondary text        NOT NULL DEFAULT '#000',
+    twitter         text        NOT NULL DEFAULT '',
+    facebook        text        NOT NULL DEFAULT '',
+    startTime       bigint      NOT NULL,
+    endTime         bigint      NOT NULL
 );
+
+CREATE TABLE contact {
+    id              serial      PRIMARY KEY,
+    info_id         integer     NOT NULL REFERENCES info(id) ON DELETE CASCADE,
+    name            text        NOT NULL,
+    phone           text        NOT NULL
+}
+
+CREATE TABLE card {
+    id              serial      PRIMARY KEY,
+    info_id         integer     NOT NULL REFERENCES info(id) ON DELETE CASCADE,
+    data            text        NOT NULL
+}
+
+CREATE TABLE location {
+    id              serial      PRIMARY KEY,
+    info_id         integer     NOT NULL REFERENCES info(id) ON DELETE CASCADE,
+    name            text        NOT NULL,
+    address         text        NOT NULL
+}
 
 CREATE TABLE event (
     id              serial      PRIMARY KEY,
