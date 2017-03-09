@@ -4,6 +4,9 @@ CREATE TABLE info (
     id                serial      PRIMARY KEY,             -- should only be one of these
     name              text        NOT NULL,
     organization      text        NOT NULL,
+    map               text        NOT NULL DEFAULT '',     -- URL
+    package           text        NOT NULL DEFAULT '',     -- URL
+    background_logo   text        NOT NULL DEFAULT '',     -- URL
     logo              text        NOT NULL DEFAULT '',     -- URL
     logo_square       text        NOT NULL DEFAULT '',     -- URL
     icon              text        NOT NULL DEFAULT '',     -- URL
