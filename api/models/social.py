@@ -53,7 +53,7 @@ def map_id_to_names(uids):
         mapping[attrs['id']] = {'name': ' '.join((attrs.get('first_name', ''),
                                                   attrs.get('last_name', ''))),
                                 'poster_icon': attrs.get('photo', '')
-                                }
+                               }
     return mapping, st
 
 
