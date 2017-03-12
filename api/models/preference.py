@@ -22,16 +22,25 @@ class Preference(flask_restful.Resource):
 
     @requires_auth
     def patch(self):
-        """{"json": {"cards": "(bool, default=None)",
-                     "info": "(bool, default=None)",
-                     "newfeed": "(bool, default=None)",
+        """{"json": {"newfeed": "(bool, default=None)",
+                     "events": "(bool, default=None)",
+                     "content": "(bool, default=None)",
+                     "contact": "(bool, default=None)",
+                     "location": "(bool, default=None)",
+                     "map": "(bool, default=None)",
+                     "package": "(bool, default=None)",
                      "facebook": "(bool, default=None)",
                      "twitter": "(bool, default=None)",
                      "reposts": "(bool, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('cards', type=bool, location='json', default=None)
-        req.add_argument('info', type=bool, location='json', default=None)
         req.add_argument('newsfeed', type=bool, location='json', default=None)
+        req.add_argument('events', type=bool, location='json', default=None)
+        req.add_argument('content', type=bool, location='json', default=None)
+        req.add_argument('contact', type=bool, location='json', default=None)
+
+        req.add_argument('location', type=bool, location='json', default=None)
+        req.add_argument('map', type=bool, location='json', default=None)
+        req.add_argument('package', type=bool, location='json', default=None)
 
         req.add_argument('facebook', type=bool, location='json', default=None)
         req.add_argument('twitter', type=bool, location='json', default=None)
@@ -49,25 +58,35 @@ class Preference(flask_restful.Resource):
 
         return patch('preference',
                      """ UPDATE preference
-                         SET (cards, info, newsfeed, facebook, twitter,
-                              reposts) =
-                             (%(cards)s, %(info)s, %(newsfeed)s, %(facebook)s,
-                              %(twitter)s, %(reposts)s)
+                         SET (newsfeed, events, content, contact, location,
+                              map, package, facebook, twitter, reposts) =
+                             (%(newsfeed)s, %(events)s, %(content)s,
+                              %(contact)s, %(location)s, %(map)s, %(package)s,
+                              %(facebook)s, %(twitter)s, %(reposts)s)
                          WHERE id = %(id)s """,
                      item)
 
     @requires_auth
     def post(self):
-        """{"json": {"cards": "(bool, default=True)",
-                     "info": "(bool, default=True)",
-                     "newsfeed": "(bool, default=True)",
+        """{"json": {"newsfeed": "(bool, default=True)",
+                     "events": "(bool, default=True)",
+                     "content": "(bool, default=True)",
+                     "contact": "(bool, default=True)",
+                     "location": "(bool, default=True)",
+                     "map": "(bool, default=True)",
+                     "package": "(bool, default=True)",
                      "facebook": "(bool, default=True)",
                      "twitter": "(bool, default=True)",
                      "reposts": "(bool, default=True)"}}"""
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('cards', type=bool, location='json', default=True)
-        req.add_argument('info', type=bool, location='json', default=True)
         req.add_argument('newsfeed', type=bool, location='json', default=True)
+        req.add_argument('events', type=bool, location='json', default=True)
+        req.add_argument('content', type=bool, location='json', default=True)
+        req.add_argument('contact', type=bool, location='json', default=True)
+
+        req.add_argument('location', type=bool, location='json', default=True)
+        req.add_argument('map', type=bool, location='json', default=True)
+        req.add_argument('package', type=bool, location='json', default=True)
 
         req.add_argument('facebook', type=bool, location='json', default=True)
         req.add_argument('twitter', type=bool, location='json', default=True)
@@ -75,9 +94,13 @@ class Preference(flask_restful.Resource):
         args = req.parse_args()
 
         return post('preference',
-                    """ INSERT INTO preference (cards, info, newsfeed,
-                                                facebook, twitter, reposts)
-                        VALUES (%(cards)s, %(info)s, %(newsfeed)s,
-                                %(facebook)s, %(twitter)s, %(reposts)s)
+                    """ INSERT INTO preference (newsfeed, events, content,
+                                                contact, location, map,
+                                                package, facebook, twitter,
+                                                reposts)
+                        VALUES (%(newsfeed)s, %(events)s, %(content)s,
+                                %(contact)s, %(location)s, %(map)s,
+                                %(package)s, %(facebook)s, %(twitter)s,
+                                %(reposts)s)
                         RETURNING id """,
                     args)

@@ -12,8 +12,8 @@ INSERT INTO account (id, first_name, last_name, email, organization, capabilitie
            ('adsku43oufo4ulf', 'Kadam', 'Ey', 'kadam@google.com', 'KGoogle', 1);
 
 
-INSERT INTO info (name, organization, logo, twitter, facebook, startTime, endTime)
-    VALUES ('SE Hackday', 'Anonymoose', 'https://static1.squarespace.com/static/5141f98de4b01238136e109c/t/55cce2d9e4b00c260f1f40e4/1439490779089/librato-hack-day',
+INSERT INTO info (id, name, organization, logo, twitter, facebook, startTime, endTime)
+    VALUES (1, 'SE Hackday', 'Anonymoose', 'https://static1.squarespace.com/static/5141f98de4b01238136e109c/t/55cce2d9e4b00c260f1f40e4/1439490779089/librato-hack-day',
             'https://twitter.com', 'https://facebook.com', 1468120162, 1468226562);
 INSERT INTO card (info_id, data)
     VALUES (1, 'Come out, do a project, and show us what ya got!');
@@ -34,10 +34,10 @@ INSERT INTO event (name, description, stream, location, startTime, endTime)
            ('No Description', '', 'workshops', 'That one place', 1468162800, 1468166400);
 
 
-INSERT INTO preference (cards, info, newsfeed, facebook, twitter, reposts) VALUES (TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);
+INSERT INTO preference (id) VALUES (1);
 
 
-INSERT INTO subscription (account_id, event_id) VALUES (1, 1);
+INSERT INTO subscription (account_id, event_id) VALUES ('1', 1);
 
 
 INSERT INTO broadcast (message, expiryTime)
