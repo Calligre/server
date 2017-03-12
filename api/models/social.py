@@ -34,7 +34,7 @@ log.setLevel(logging.INFO)
 
 def map_id_to_names(uids):
     res, st = database.gets('user',
-                            """ SELECT id, first_name, last_name
+                            """ SELECT id, first_name, last_name, photo
                                 FROM account
                                 WHERE id = ANY(%(uids)s) """,
                             {'uids': uids})
@@ -50,9 +50,10 @@ def map_id_to_names(uids):
         if 'id' not in attrs.keys():
             continue
 
-        mapping[attrs['id']] = ' '.join((attrs.get('first_name', ''),
-                                         attrs.get('last_name', '')))
-
+        mapping[attrs['id']] = {'name': ' '.join((attrs.get('first_name', ''),
+                                                  attrs.get('last_name', ''))),
+                                'poster_icon': attrs.get('photo', '')
+                                }
     return mapping, st
 
 
@@ -65,9 +66,10 @@ def format_post_response(posts, req_userid):
     for item in posts:
         item['timestamp'] = str(item.get('timestamp'))
         item['id'] = item['timestamp']
-        item['poster_name'] = res.get(item['poster_id'], 'Random User')
-        item['poster_icon'] = 'https://{}.s3.amazonaws.com/profilepic-{}.jpg'\
-            .format(PROFILE_PIC_BCKT, item['poster_id'])
+        item['poster_name'] = res.get(item['poster_id'], {}).\
+            get('name', "Random User")
+        item['poster_icon'] = res.get(item['poster_id'], {}).\
+            get('poster_icon')
         item['current_user_likes'] = req_userid in item.get('likes', [])
         item['like_count'] = str(item.get('like_count'))
         item.pop('likes', None)
