@@ -22,7 +22,6 @@ AWS_SNS_ACCESS_KEY = os.environ.get('AWS_SNS_ACCESS_KEY')
 AWS_SNS_SECRET_KEY = os.environ.get('AWS_SNS_SECRET_KEY')
 
 MAX_POSTS = 25
-PROFILE_PIC_BCKT = os.environ.get('PROFILE_PIC_BUCKET', 'calligre-profilepics')
 UPLOAD_BUCKET = os.environ.get('UPLOAD_BUCKET', 'calligre-images')
 RESIZE_BUCKET = os.environ.get('RESIZE_BUCKET',
                                'calligre-images-pending-resize')
@@ -34,7 +33,7 @@ log.setLevel(logging.INFO)
 
 def map_id_to_names(uids):
     res, st = database.gets('user',
-                            """ SELECT id, first_name, last_name
+                            """ SELECT id, first_name, last_name, photo
                                 FROM account
                                 WHERE id = ANY(%(uids)s) """,
                             {'uids': uids})
@@ -50,9 +49,9 @@ def map_id_to_names(uids):
         if 'id' not in attrs.keys():
             continue
 
-        mapping[attrs['id']] = ' '.join((attrs.get('first_name', ''),
-                                         attrs.get('last_name', '')))
-
+        mapping[attrs['id']] = {'name': ' '.join((attrs.get('first_name', ''),
+                                                  attrs.get('last_name', ''))),
+                                'poster_icon': attrs.get('photo', '')}
     return mapping, st
 
 
@@ -65,9 +64,12 @@ def format_post_response(posts, req_userid):
     for item in posts:
         item['timestamp'] = str(item.get('timestamp'))
         item['id'] = item['timestamp']
-        item['poster_name'] = res.get(item['poster_id'], 'Random User')
-        item['poster_icon'] = 'https://{}.s3.amazonaws.com/profilepic-{}.jpg'\
-            .format(PROFILE_PIC_BCKT, item['poster_id'])
+        item['poster_name'] = res.get(item['poster_id'], {}).\
+            get('name', 'Random User')
+        item['poster_icon'] = res.get(item['poster_id'], {}).\
+            get('poster_icon',
+                'https://s3-us-west-2.amazonaws.com/'
+                'calligre-profilepics/default.png')
         item['current_user_likes'] = req_userid in item.get('likes', [])
         item['like_count'] = str(item.get('like_count'))
         item.pop('likes', None)
@@ -203,7 +205,12 @@ class SocialContentList(flask_restful.Resource):
                                args.get('post_tw', False))
 
         increment_points(userid)
-        return {'data': {'id': str(timestamp)}}, flask_api.status.HTTP_200_OK
+        data = {
+            'id': str(timestamp),
+            'text': params['Item'].get('text'),
+            'media_link': params['Item'].get('media_link')
+        }
+        return {'data': data}, flask_api.status.HTTP_200_OK
 
     @staticmethod
     def external_post(req_userid, message, media_s3, fb, tw):
