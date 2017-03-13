@@ -87,4 +87,11 @@ CREATE TABLE preference (
     reposts         boolean     NOT NULL DEFAULT TRUE
 );
 
+CREATE TABLE survey (
+    id              serial      PRIMARY KEY,
+    name            text        NOT NULL DEFAULT '',
+    description     text        NOT NULL DEFAULT '',
+    link            text        NOT NULL
+);
+
 COMMIT;
