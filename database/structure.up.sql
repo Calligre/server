@@ -18,25 +18,25 @@ CREATE TABLE info (
     endTime         bigint      NOT NULL
 );
 
-CREATE TABLE contact {
+CREATE TABLE contact (
     id              serial      PRIMARY KEY,
     info_id         integer     NOT NULL REFERENCES info(id) ON DELETE CASCADE,
     name            text        NOT NULL,
     phone           text        NOT NULL
-}
+);
 
-CREATE TABLE card {
+CREATE TABLE card (
     id              serial      PRIMARY KEY,
     info_id         integer     NOT NULL REFERENCES info(id) ON DELETE CASCADE,
     data            text        NOT NULL
-}
+);
 
-CREATE TABLE location {
+CREATE TABLE location (
     id              serial      PRIMARY KEY,
     info_id         integer     NOT NULL REFERENCES info(id) ON DELETE CASCADE,
     name            text        NOT NULL,
     address         text        NOT NULL
-}
+);
 
 CREATE TABLE event (
     id              serial      PRIMARY KEY,
@@ -79,9 +79,13 @@ CREATE TABLE broadcast (
 
 CREATE TABLE preference (
     id              serial      PRIMARY KEY,               -- should only be one of these
-    cards           boolean     NOT NULL DEFAULT TRUE,
-    info            boolean     NOT NULL DEFAULT TRUE,
     newsfeed        boolean     NOT NULL DEFAULT TRUE,
+    events          boolean     NOT NULL DEFAULT TRUE,
+    content         boolean     NOT NULL DEFAULT TRUE,
+    contact         boolean     NOT NULL DEFAULT TRUE,
+    location        boolean     NOT NULL DEFAULT TRUE,
+    map             boolean     NOT NULL DEFAULT TRUE,
+    package         boolean     NOT NULL DEFAULT TRUE,
     facebook        boolean     NOT NULL DEFAULT TRUE,
     twitter         boolean     NOT NULL DEFAULT TRUE,
     reposts         boolean     NOT NULL DEFAULT TRUE
