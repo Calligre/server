@@ -29,6 +29,7 @@ class Preference(flask_restful.Resource):
                      "location": "(bool, default=None)",
                      "map": "(bool, default=None)",
                      "package": "(bool, default=None)",
+                     "survey": "(bool, default=None)",
                      "facebook": "(bool, default=None)",
                      "twitter": "(bool, default=None)",
                      "reposts": "(bool, default=None)"}}"""
@@ -41,6 +42,7 @@ class Preference(flask_restful.Resource):
         req.add_argument('location', type=bool, location='json', default=None)
         req.add_argument('map', type=bool, location='json', default=None)
         req.add_argument('package', type=bool, location='json', default=None)
+        req.add_argument('survey', type=bool, location='json', default=None)
 
         req.add_argument('facebook', type=bool, location='json', default=None)
         req.add_argument('twitter', type=bool, location='json', default=None)
@@ -59,10 +61,12 @@ class Preference(flask_restful.Resource):
         return patch('preference',
                      """ UPDATE preference
                          SET (newsfeed, events, content, contact, location,
-                              map, package, facebook, twitter, reposts) =
+                              map, package, survey, facebook, twitter,
+                              reposts) =
                              (%(newsfeed)s, %(events)s, %(content)s,
                               %(contact)s, %(location)s, %(map)s, %(package)s,
-                              %(facebook)s, %(twitter)s, %(reposts)s)
+                              %(survey)s, %(facebook)s, %(twitter)s,
+                              %(reposts)s)
                          WHERE id = %(id)s """,
                      item)
 
@@ -75,6 +79,7 @@ class Preference(flask_restful.Resource):
                      "location": "(bool, default=True)",
                      "map": "(bool, default=True)",
                      "package": "(bool, default=True)",
+                     "survey": "(bool, default=True)",
                      "facebook": "(bool, default=True)",
                      "twitter": "(bool, default=True)",
                      "reposts": "(bool, default=True)"}}"""
@@ -87,6 +92,7 @@ class Preference(flask_restful.Resource):
         req.add_argument('location', type=bool, location='json', default=True)
         req.add_argument('map', type=bool, location='json', default=True)
         req.add_argument('package', type=bool, location='json', default=True)
+        req.add_argument('survey', type=bool, location='json', default=True)
 
         req.add_argument('facebook', type=bool, location='json', default=True)
         req.add_argument('twitter', type=bool, location='json', default=True)
@@ -96,11 +102,11 @@ class Preference(flask_restful.Resource):
         return post('preference',
                     """ INSERT INTO preference (newsfeed, events, content,
                                                 contact, location, map,
-                                                package, facebook, twitter,
-                                                reposts)
+                                                package, survey, facebook,
+                                                twitter, reposts)
                         VALUES (%(newsfeed)s, %(events)s, %(content)s,
                                 %(contact)s, %(location)s, %(map)s,
-                                %(package)s, %(facebook)s, %(twitter)s,
-                                %(reposts)s)
+                                %(package)s, %(survey)s, %(facebook)s,
+                                %(twitter)s, %(reposts)s)
                         RETURNING id """,
                     args)

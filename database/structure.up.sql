@@ -86,6 +86,7 @@ CREATE TABLE preference (
     location        boolean     NOT NULL DEFAULT TRUE,
     map             boolean     NOT NULL DEFAULT TRUE,
     package         boolean     NOT NULL DEFAULT TRUE,
+    survey          boolean     NOT NULL DEFAULT TRUE,
     facebook        boolean     NOT NULL DEFAULT TRUE,
     twitter         boolean     NOT NULL DEFAULT TRUE,
     reposts         boolean     NOT NULL DEFAULT TRUE
