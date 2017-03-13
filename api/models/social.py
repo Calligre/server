@@ -22,7 +22,6 @@ AWS_SNS_ACCESS_KEY = os.environ.get('AWS_SNS_ACCESS_KEY')
 AWS_SNS_SECRET_KEY = os.environ.get('AWS_SNS_SECRET_KEY')
 
 MAX_POSTS = 25
-PROFILE_PIC_BCKT = os.environ.get('PROFILE_PIC_BUCKET', 'calligre-profilepics')
 UPLOAD_BUCKET = os.environ.get('UPLOAD_BUCKET', 'calligre-images')
 RESIZE_BUCKET = os.environ.get('RESIZE_BUCKET',
                                'calligre-images-pending-resize')
@@ -66,9 +65,11 @@ def format_post_response(posts, req_userid):
         item['timestamp'] = str(item.get('timestamp'))
         item['id'] = item['timestamp']
         item['poster_name'] = res.get(item['poster_id'], {}).\
-            get('name', "Random User")
+            get('name', 'Random User')
         item['poster_icon'] = res.get(item['poster_id'], {}).\
-            get('poster_icon')
+            get('poster_icon',
+                'https://s3-us-west-2.amazonaws.com/'
+                'calligre-profilepics/default.png')
         item['current_user_likes'] = req_userid in item.get('likes', [])
         item['like_count'] = str(item.get('like_count'))
         item.pop('likes', None)
