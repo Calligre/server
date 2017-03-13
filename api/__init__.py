@@ -18,6 +18,7 @@ import api.models.preference
 import api.models.social
 import api.models.stream
 import api.models.subscription
+import api.models.survey
 import api.models.user
 
 
@@ -66,6 +67,9 @@ restful.add_resource(api.models.subscription.SubscriptionEventList,
                      '/event/<int:eid>/subscription')
 restful.add_resource(api.models.subscription.SubscriptionUserList,
                      '/user/<uid>/subscription')
+
+restful.add_resource(api.models.survey.Survey, '/survey/<int:sid>')
+restful.add_resource(api.models.survey.SurveyList, '/survey')
 
 restful.add_resource(api.models.user.User, '/user/<uid>')
 restful.add_resource(api.models.user.UserList, '/user')

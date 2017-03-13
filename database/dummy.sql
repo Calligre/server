@@ -46,4 +46,8 @@ INSERT INTO broadcast (message, expiryTime)
            ('This broadcast is from 2016!', 1478217600),
            ('This is from 2017!', 1509753600);
 
+
+INSERT INTO survey (name, description, link)
+    VALUES ('Sample Survey', 'Tell us all your secrets!', 'https://google.ca');
+
 COMMIT;
