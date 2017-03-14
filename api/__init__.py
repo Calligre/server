@@ -1,6 +1,8 @@
 import collections
 import json
+import logging
 import os
+import sys
 
 import flask
 from flask import _request_ctx_stack
@@ -23,6 +25,11 @@ import api.models.user
 
 
 SECRET_KEY = os.environ.get('SECRET_KEY', '[not-a-s3cr3t]')
+
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 app = flask.Flask(__name__)

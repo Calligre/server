@@ -10,6 +10,9 @@ workers = threads = 2 * multiprocessing.cpu_count() + 1
 
 accesslog = 'api.access.log'
 errorlog = 'api.error.log'
+loglevel = 'info'
+
+capture_output = True
 
 # require these to be set in production
 _ = os.environ['DB_BASE']
