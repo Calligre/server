@@ -8,7 +8,7 @@ import flask_restful
 import flask_restful.reqparse
 
 from api.auth import requires_auth
-from api.database import delete, get, gets, patch, post
+from api.database import delete, gets, patch, post
 
 
 PROFILE_PIC_BCKT = os.environ.get("PROFILE_PIC_BUCKET", "calligre-profilepics")
@@ -85,7 +85,10 @@ class UserList(flask_restful.Resource):
 
         conds = ["AND {}='{}' ".format(k, v) for k, v in args.items()]
         return gets('user',
-                    """ SELECT * FROM account
+                    """ SELECT *, ROW_NUMBER()
+                                      OVER (ORDER BY points DESC)
+                                      AS rank
+                        FROM account
                         WHERE 1=1 {} """.format(''.join(conds)))
 
     @requires_auth
@@ -149,9 +152,25 @@ class User(flask_restful.Resource):
 
     @requires_auth
     def get(self, uid):
-        return get('user',
-                   'SELECT * FROM account WHERE id = %(uid)s',
-                   {'uid': uid})
+        body, stat = gets('user',
+                          """ SELECT *, ROW_NUMBER()
+                                            OVER (ORDER BY points DESC)
+                                            AS rank
+                              FROM account """)
+        if stat != flask_api.status.HTTP_200_OK:
+            return body, stat
+
+        record = None
+        for k in body['data']:
+            if k['id'] == uid:
+                record = k
+                break
+
+        if not record:
+            data = {'errors': [{'title': 'no record found'}]}
+            return data, flask_api.status.HTTP_404_NOT_FOUND
+
+        return {'data': record}, flask_api.status.HTTP_200_OK
 
     @requires_auth
     def patch(self, uid):
