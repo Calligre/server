@@ -38,6 +38,15 @@ CREATE TABLE location (
     address         text        NOT NULL
 );
 
+CREATE TABLE sponsor (
+    id              serial      PRIMARY KEY,
+    info_id         integer     NOT NULL REFERENCES info(id) ON DELETE CASCADE,
+    name            text        NOT NULL,
+    logo            text        NOT NULL,                -- URL
+    level           text        NOT NULL DEFAULT '',
+    website         text        NOT NULL DEFAULT ''      -- URL
+);
+
 CREATE TABLE event (
     id              serial      PRIMARY KEY,
     name            text        NOT NULL,
