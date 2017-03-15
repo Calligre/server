@@ -18,6 +18,7 @@ import api.models.info
 import api.models.location
 import api.models.preference
 import api.models.social
+import api.models.sponsor
 import api.models.stream
 import api.models.subscription
 import api.models.survey
@@ -54,6 +55,8 @@ restful.add_resource(api.models.contact.Contact, '/info/contact/<int:cid>')
 restful.add_resource(api.models.contact.ContactList, '/info/contact')
 restful.add_resource(api.models.location.Location, '/info/location/<int:lid>')
 restful.add_resource(api.models.location.LocationList, '/info/location')
+restful.add_resource(api.models.sponsor.Sponsor, '/info/sponsor/<int:sid>')
+restful.add_resource(api.models.sponsor.SponsorList, '/info/sponsor')
 
 restful.add_resource(api.models.preference.Preference, '/preference')
 

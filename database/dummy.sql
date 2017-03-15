@@ -22,6 +22,9 @@ INSERT INTO contact (info_id, name, phone)
 INSERT INTO location (info_id, name, address)
     VALUES (1, 'Home Base', 'Multimedia Lab'),
            (1, 'Workshops', 'SE Lounge');
+INSERT INTO sponsor (info_id, name, logo, level, website)
+    VALUES (1, 'Sponsor McSponsor', 'http://www.jeffreydavisfishing.com/wp-content/uploads/sponsor.jpg', 'Platinum', 'https://google.com'),
+           (1, 'Secret Sponsor (shhhhhh!)', 'http://www.clipartkid.com/images/765/questionmark-03fefj-clipart.jpg', 'Bronze', '');
 
 
 INSERT INTO event (name, description, stream, location, startTime, endTime)
