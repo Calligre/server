@@ -206,12 +206,16 @@ class SocialContentList(flask_restful.Resource):
                                args.get('post_tw', False))
 
         increment_points(userid)
+        user_info, _ = map_id_to_names([userid])
         data = {
             'id': str(timestamp),
             'text': params['Item'].get('text'),
-            'media_link': params['Item'].get('media_link')
+            'media_link': params['Item'].get('media_link'),
+            'poster_id': userid,
+            'poster_name': user_info[userid].get('name'),
+            'poster_icon': user_info[userid].get('poster_icon'),
         }
-        return {'data': data}, flask_api.status.HTTP_200_OK
+        return {'data': data}, flask_api.status.HTTP_201_CREATED
 
     @staticmethod
     def external_post(req_userid, message, media_s3, fb, tw):
