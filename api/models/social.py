@@ -51,11 +51,12 @@ def map_id_to_names(uids):
         if 'id' not in attrs.keys():
             continue
 
-        first_name = attrs.get('first_name', 'Random')
-        last_name = attrs.get('last_name', 'User')
+        first_name = attrs.get('first_name', '')
+        last_name = attrs.get('last_name', '')
+        name = ' '.join([first_name, last_name]).strip()
         profile_pic = attrs.get('photo', DEFAULT_PROFILE_PIC)
 
-        mapping[attrs['id']] = {'name': ' '.join([first_name, last_name]),
+        mapping[attrs['id']] = {'name': name),
                                 'poster_icon': profile_pic}
     return mapping, st
 
