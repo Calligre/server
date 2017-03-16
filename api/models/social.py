@@ -56,7 +56,7 @@ def map_id_to_names(uids):
         name = ' '.join([first_name, last_name]).strip()
         profile_pic = attrs.get('photo', DEFAULT_PROFILE_PIC)
 
-        mapping[attrs['id']] = {'name': name),
+        mapping[attrs['id']] = {'name': name,
                                 'poster_icon': profile_pic}
     return mapping, st
 
