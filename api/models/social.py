@@ -26,6 +26,8 @@ UPLOAD_BUCKET = os.environ.get('UPLOAD_BUCKET', 'calligre-images')
 RESIZE_BUCKET = os.environ.get('RESIZE_BUCKET',
                                'calligre-images-pending-resize')
 EXT_POSTS_TOPIC = 'arn:aws:sns:us-west-2:037954390517:calligre-external-posts'
+DEFAULT_PROFILE_PIC = 'https://s3-us-west-2.amazonaws.com/'
+'calligre-profilepics/default.png'
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
@@ -49,9 +51,13 @@ def map_id_to_names(uids):
         if 'id' not in attrs.keys():
             continue
 
-        mapping[attrs['id']] = {'name': ' '.join((attrs.get('first_name', ''),
-                                                  attrs.get('last_name', ''))),
-                                'poster_icon': attrs.get('photo', '')}
+        first_name = attrs.get('first_name', '')
+        last_name = attrs.get('last_name', '')
+        name = ' '.join([first_name, last_name]).strip()
+        profile_pic = attrs.get('photo', DEFAULT_PROFILE_PIC)
+
+        mapping[attrs['id']] = {'name': name,
+                                'poster_icon': profile_pic}
     return mapping, st
 
 
@@ -64,12 +70,8 @@ def format_post_response(posts, req_userid):
     for item in posts:
         item['timestamp'] = str(item.get('timestamp'))
         item['id'] = item['timestamp']
-        item['poster_name'] = res.get(item['poster_id'], {}).\
-            get('name', 'Random User')
-        item['poster_icon'] = res.get(item['poster_id'], {}).\
-            get('poster_icon',
-                'https://s3-us-west-2.amazonaws.com/'
-                'calligre-profilepics/default.png')
+        item['poster_name'] = res.get(item['poster_id'], {}).get('name')
+        item['poster_icon'] = res.get(item['poster_id'], {}).get('poster_icon')
         item['current_user_likes'] = req_userid in item.get('likes', [])
         item['like_count'] = str(item.get('like_count'))
         item.pop('likes', None)
@@ -205,12 +207,16 @@ class SocialContentList(flask_restful.Resource):
                                args.get('post_tw', False))
 
         increment_points(userid)
+        user_info, _ = map_id_to_names([userid])
         data = {
             'id': str(timestamp),
             'text': params['Item'].get('text'),
-            'media_link': params['Item'].get('media_link')
+            'media_link': params['Item'].get('media_link'),
+            'poster_id': userid,
+            'poster_name': user_info[userid].get('name'),
+            'poster_icon': user_info[userid].get('poster_icon'),
         }
-        return {'data': data}, flask_api.status.HTTP_200_OK
+        return {'data': data}, flask_api.status.HTTP_201_CREATED
 
     @staticmethod
     def external_post(req_userid, message, media_s3, fb, tw):
