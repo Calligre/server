@@ -75,8 +75,11 @@ def format_post_response(posts, req_userid):
         item['poster_name'] = res.get(item['poster_id'], {}).get('name')
         item['poster_icon'] = res.get(item['poster_id'], {}).get('poster_icon')
         item['current_user_likes'] = req_userid in item.get('likes', [])
-        item['like_count'] = str(item.get('like_count'))
+        item['like_count'] = str(item.get('like_count'), 0)
+        item['current_user_flagged'] = req_userid in item.get('flags', [])
+        item['flag_count'] = str(item.get('flag_count'), 0)
         item.pop('likes', None)
+        item.pop('flags', None)
 
     return posts, st
 
@@ -108,8 +111,9 @@ class SocialContentList(flask_restful.Resource):
         params = {
             'Limit': limit,
             'ScanIndexForward': False,
-            'ProjectionExpression':
+            'ProjectionExpression': "{},{}".format(
                 '#ts,poster_id,#txt,media_link,like_count,likes',
+                'flag_count,flags'),
             'ExpressionAttributeNames': {
                 '#ts': 'timestamp',
                 '#txt': 'text'
@@ -172,6 +176,7 @@ class SocialContentList(flask_restful.Resource):
                 'timestamp': timestamp,
                 'poster_id': userid,
                 'like_count': 0,
+                'flag_count': 0,
             },
             'ConditionExpression': Attr('timestamp').ne(timestamp),
         }
@@ -328,7 +333,9 @@ class SingleSocialContent(flask_restful.Resource):
         params = {
             'Limit': 1,
             'ScanIndexForward': False,
-            'ProjectionExpression': '#ts,poster_id,#txt,media_link,like_count',
+            'ProjectionExpression': "{},{}".format(
+                '#ts,poster_id,#txt,media_link,like_count,likes',
+                'flag_count,flags'),
             'ExpressionAttributeNames': {
                 '#ts': 'timestamp',
                 '#txt': 'text'
