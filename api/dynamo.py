@@ -67,6 +67,18 @@ class DynamoWrapper:
         except Exception as e:
             return inspect_error(e)
 
+    def scan(self, params):
+        try:
+            return inspect_return(self.table.scan(**params))
+        except Exception as e:
+            return inspect_error(e)
+
+    def batch_get(self, params):
+        try:
+            return inspect_return(self.dynamo.batch_get_item(**params))
+        except Exception as e:
+            return inspect_error(e)
+
     def get_single(self, params):
         response, status = self.get(params)
         if not flask_api.status.is_success(status):
