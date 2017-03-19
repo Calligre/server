@@ -462,7 +462,7 @@ class FlaggedPostList(flask_restful.Resource):
             'timestamp': item['timestamp']
         } for item in r.get('Items', [])]
 
-        req = {'RequestItems': {
+        params = {'RequestItems': {
             POSTS_TABLE_NAME: {
                 'ProjectionExpression':
                     '#ts,poster_id,#txt,media_link,flag_count',
@@ -474,7 +474,7 @@ class FlaggedPostList(flask_restful.Resource):
             }
         }}
 
-        r, status = posts_table.batch_get(req)
+        r, status = posts_table.batch_get(params)
         if not flask_api.status.is_success(status):
             return r, status
         items = r.get('Responses', {}).get(POSTS_TABLE_NAME, [])
