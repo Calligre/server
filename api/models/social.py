@@ -28,8 +28,10 @@ RESIZE_BUCKET = os.environ.get('RESIZE_BUCKET',
 EXT_POSTS_TOPIC = 'arn:aws:sns:us-west-2:037954390517:calligre-external-posts'
 DEFAULT_PROFILE_PIC = 'https://s3-us-west-2.amazonaws.com/'
 'calligre-profilepics/default.png'
+POSTS_TABLE_NAME = os.environ.get('POSTS_TABLE', 'calligre-posts')
 
-posts_table = dynamo.DynamoWrapper(table='calligre-posts')
+posts_table = dynamo.DynamoWrapper(table_name=POSTS_TABLE_NAME)
+flag_table = dynamo.DynamoWrapper(table_name='flagged')
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
@@ -63,7 +65,7 @@ def map_id_to_names(uids):
     return mapping, st
 
 
-def format_post_response(posts, req_userid):
+def format_post_response(posts, req_userid=None):
     uids = [item['poster_id'] for item in posts]
     res, st = map_id_to_names(uids)
     if not flask_api.status.is_success(st):
@@ -421,3 +423,68 @@ class SingleSocialContentLikes(flask_restful.Resource):
         increment_points(userid)
 
         return posts_table.patch(params)
+
+
+class FlaggedPostList(flask_restful.Resource):
+    @requires_auth
+    def get(self):
+        """{"args": {"limit": "(int, default=25)",
+                     "offset": "(float, required)"}}"""
+        req = flask_restful.reqparse.RequestParser()
+        req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
+        req.add_argument('offset', type=float, location='args', required=False)
+        args = req.parse_args()
+
+        limit = min(args['limit'], MAX_POSTS)
+
+        params = {
+            'Limit': limit,
+            'ProjectionExpression': 'timestamp',
+        }
+
+        if args.get('offset'):
+            params['ExclusiveStartKey'] = {
+                'timestamp': Decimal(args.get('offset')),
+            }
+
+        r, status = flag_table.scan(params)
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        # the flagged list might need to be paginated, store the offset now
+        nextOffset = r.get('LastEvaluatedKey', {}).get('timestamp')
+        if nextOffset:
+            nextOffset = str(nextOffset)
+
+        # Format the list of partition + sort keys for batch_get
+        post_ids = [{
+            'posts': 'posts',
+            'timestamp': item['timestamp']
+        } for item in r.get('Items', [])]
+
+        req = {'RequestItems': {
+            POSTS_TABLE_NAME: {
+                'ProjectionExpression':
+                    '#ts,poster_id,#txt,media_link,flag_count',
+                'ExpressionAttributeNames': {
+                    '#ts': 'timestamp',
+                    '#txt': 'text'
+                },
+                'Keys': post_ids
+            }
+        }}
+
+        r, status = posts_table.batch_get(req)
+        if not flask_api.status.is_success(status):
+            return r, status
+        items = r.get('Responses', {}).get(POSTS_TABLE_NAME, [])
+
+        posts = format_post_response(items)
+
+        body = {
+            'posts': posts,
+            'count': r.get('Count', 0),
+            'nextOffset': nextOffset,
+        }
+
+        return {'data': body}, flask_api.status.HTTP_200_OK
