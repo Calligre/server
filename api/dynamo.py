@@ -49,19 +49,19 @@ def expect_empty_return(response):
 
 class DynamoWrapper:
     def __init__(self,
-                 table=os.environ.get('DYNAMO_TABLE', 'calligre-posts'),
+                 table_name=os.environ.get('DYNAMO_TABLE', 'calligre-posts'),
                  region=os.environ.get('DYNAMO_REGION', 'us-west-2'),
                  access_key=os.environ.get('AWS_DYNAMO_ACCESS_KEY'),
                  secret_key=os.environ.get('AWS_DYNAMO_SECRET_KEY')):
 
         self._boto = boto3.Session(aws_access_key_id=access_key,
                                    aws_secret_access_key=secret_key)
-        self.dynamo = self._boto.resource('dynamodb',
-                                          region_name=region).Table(table)
+        self.dynamo = self._boto.resource('dynamodb', region_name=region)
+        self.table = self.dynamo.Table(table_name)
 
     def get(self, params):
         try:
-            return inspect_return(self.dynamo.query(**params))
+            return inspect_return(self.table.query(**params))
         except Exception as e:
             return inspect_error(e)
 
@@ -78,18 +78,18 @@ class DynamoWrapper:
 
     def patch(self, params):
         try:
-            return expect_empty_return(self.dynamo.update_item(**params))
+            return expect_empty_return(self.table.update_item(**params))
         except Exception as e:
             return inspect_error(e)
 
     def put(self, params):
         try:
-            return expect_empty_return(self.dynamo.put_item(**params))
+            return expect_empty_return(self.table.put_item(**params))
         except Exception as e:
             return inspect_error(e)
 
     def delete(self, params):
         try:
-            return expect_empty_return(self.dynamo.delete_item(**params))
+            return expect_empty_return(self.table.delete_item(**params))
         except Exception as e:
             return inspect_error(e)
