@@ -29,6 +29,8 @@ EXT_POSTS_TOPIC = 'arn:aws:sns:us-west-2:037954390517:calligre-external-posts'
 DEFAULT_PROFILE_PIC = 'https://s3-us-west-2.amazonaws.com/'
 'calligre-profilepics/default.png'
 
+DYNAMO = dynamo.DynamoWrapper(table='calligre-posts')
+
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 
@@ -122,7 +124,7 @@ class SocialContentList(flask_restful.Resource):
                 'timestamp': Decimal(args.get('offset')),
             }
 
-        r, status = dynamo.get(params)
+        r, status = DYNAMO.get(params)
         if not flask_api.status.is_success(status):
             return r, status
 
@@ -195,7 +197,7 @@ class SocialContentList(flask_restful.Resource):
                 log.error("Error parsing media link")
                 log.exception(ex)
 
-        r, status = dynamo.put(params)
+        r, status = DYNAMO.put(params)
         if not flask_api.status.is_success(status):
             return r, status
 
@@ -298,7 +300,7 @@ class SingleSocialContent(flask_restful.Resource):
                 Key('posts').eq('posts') & Key('timestamp').eq(postid),
         }
 
-        r, status = dynamo.get_single(params)
+        r, status = DYNAMO.get_single(params)
         if not flask_api.status.is_success(status):
             return r, status
 
@@ -319,7 +321,7 @@ class SingleSocialContent(flask_restful.Resource):
 
         decrement_points(userid)
 
-        return dynamo.delete(params)
+        return DYNAMO.delete(params)
 
     @requires_auth
     def get(self, postid):
@@ -336,7 +338,7 @@ class SingleSocialContent(flask_restful.Resource):
                 Key('posts').eq('posts') & Key('timestamp').eq(postid),
         }
 
-        r, status = dynamo.get_single(params)
+        r, status = DYNAMO.get_single(params)
         if not flask_api.status.is_success(status):
             return r, status
 
@@ -371,7 +373,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
         decrement_points(userid)
 
-        return dynamo.patch(params)
+        return DYNAMO.patch(params)
 
     @requires_auth
     def get(self, postid):
@@ -382,7 +384,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
                 Key('posts').eq('posts') & Key('timestamp').eq(postid),
         }
 
-        r, status = dynamo.get_single(params)
+        r, status = DYNAMO.get_single(params)
         if not flask_api.status.is_success(status):
             return r, status
 
@@ -412,4 +414,4 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
         increment_points(userid)
 
-        return dynamo.patch(params)
+        return DYNAMO.patch(params)

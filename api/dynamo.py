@@ -5,17 +5,6 @@ import boto3
 import flask_api
 
 
-AWS_DYNAMO_ACCESS_KEY = os.environ.get('AWS_DYNAMO_ACCESS_KEY')
-AWS_DYNAMO_SECRET_KEY = os.environ.get('AWS_DYNAMO_SECRET_KEY')
-
-DYNAMO_TABLE = os.environ.get('DYNAMO_TABLE', 'calligre-posts')
-DYNAMO_REGION = os.environ.get('DYNAMO_REGION', 'us-west-2')
-
-dynamo_boto = boto3.Session(aws_access_key_id=AWS_DYNAMO_ACCESS_KEY,
-                            aws_secret_access_key=AWS_DYNAMO_SECRET_KEY)
-dynamo = dynamo_boto.resource('dynamodb',
-                              region_name=DYNAMO_REGION).Table(DYNAMO_TABLE)
-
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 
@@ -58,41 +47,49 @@ def expect_empty_return(response):
     return response, status
 
 
-def get(params):
-    try:
-        return inspect_return(dynamo.query(**params))
-    except Exception as e:
-        return inspect_error(e)
+class DynamoWrapper:
+    def __init__(self,
+                 table=os.environ.get('DYNAMO_TABLE', 'calligre-posts'),
+                 region=os.environ.get('DYNAMO_REGION', 'us-west-2'),
+                 access_key=os.environ.get('AWS_DYNAMO_ACCESS_KEY'),
+                 secret_key=os.environ.get('AWS_DYNAMO_SECRET_KEY')):
 
+        self._boto = boto3.Session(aws_access_key_id=access_key,
+                                   aws_secret_access_key=secret_key)
+        self.dynamo = self._boto.resource('dynamodb',
+                                          region_name=region).Table(table)
 
-def get_single(params):
-    response, status = get(params)
-    if not flask_api.status.is_success(status):
-        return response, status
+    def get(self, params):
+        try:
+            return inspect_return(self.dynamo.query(**params))
+        except Exception as e:
+            return inspect_error(e)
 
-    if response.get('Count') != 1:
-        data = {'errors': [{'title': 'no record found'}]}
-        return data, flask_api.status.HTTP_404_NOT_FOUND
+    def get_single(self, params):
+        response, status = self.get(params)
+        if not flask_api.status.is_success(status):
+            return response, status
 
-    return response.get('Items', {}), status
+        if response.get('Count') != 1:
+            data = {'errors': [{'title': 'no record found'}]}
+            return data, flask_api.status.HTTP_404_NOT_FOUND
 
+        return response.get('Items', {}), status
 
-def patch(params):
-    try:
-        return expect_empty_return(dynamo.update_item(**params))
-    except Exception as e:
-        return inspect_error(e)
+    def patch(self, params):
+        try:
+            return expect_empty_return(self.dynamo.update_item(**params))
+        except Exception as e:
+            return inspect_error(e)
 
+    def put(self, params):
+        try:
+            return expect_empty_return(self.dynamo.put_item(**params))
+        except Exception as e:
+            return inspect_error(e)
 
-def put(params):
-    try:
-        return expect_empty_return(dynamo.put_item(**params))
-    except Exception as e:
-        return inspect_error(e)
-
-
-def delete(params):
-    try:
-        return expect_empty_return(dynamo.delete_item(**params))
-    except Exception as e:
-        return inspect_error(e)
+    def delete(self, params):
+        try:
+            return expect_empty_return(self.dynamo.delete_item(**params))
+        except Exception as e:
+            return inspect_error(e)
