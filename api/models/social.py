@@ -488,3 +488,71 @@ class FlaggedPostList(flask_restful.Resource):
         }
 
         return {'data': body}, flask_api.status.HTTP_200_OK
+
+
+class PostFlag(flask_restful.Resource):
+    @requires_auth
+    def delete(self, postid):
+        userid = _request_ctx_stack.top.current_user['sub']
+        timestamp = Decimal(postid)
+        params = {
+            'Key': {
+                'posts': 'posts',
+                'timestamp': timestamp,
+            },
+            'UpdateExpression':
+                'DELETE flags :flag SET flag_count = flag_count - :1',
+            'ExpressionAttributeValues': {
+                ':flag': set([userid]),
+                ':1': 1
+            },
+            'ConditionExpression': Attr('flags').contains(userid),
+            'ReturnValues': 'UPDATED_NEW',
+        }
+
+        r, status = posts_table.patch(params)
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        if r.get('Attributes', {}).get('flag_count', 0) == 0:
+            params = {
+                'Key': {
+                    'timestamp': timestamp,
+                },
+            }
+            return flag_table.delete(params)
+
+        return {'data': None}, status
+
+    @requires_auth
+    def post(self, postid):
+        userid = _request_ctx_stack.top.current_user['sub']
+        timestamp = Decimal(postid)
+        params = {
+            'Key': {
+                'posts': 'posts',
+                'timestamp': timestamp,
+            },
+            'UpdateExpression':
+                'ADD flags :flag SET flag_count = flag_count + :1',
+            'ExpressionAttributeValues': {
+                ':flag': set([userid]),
+                ':1': 1
+            },
+            'ConditionExpression': Not(Attr('flags').contains(userid)),
+        }
+
+        r, status = posts_table.patch(params)
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        # unconditionally create the flag record because we're only
+        # overwritting the parition key attr, which will always be the same
+        params = {
+            'Item': {
+                'timestamp': timestamp,
+            },
+        }
+        flag_table.put(params)
+
+        return {'data': None}, status
