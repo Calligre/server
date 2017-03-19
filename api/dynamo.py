@@ -43,6 +43,8 @@ def inspect_error(e):
 def expect_empty_return(response):
     response, status = inspect_return(response)
     if status == 200:
+        if r.get('Attributes'):
+            return {'data': r.get('Attributes')}, flask_api.status.HTTP_200_OK
         return {'data': None}, flask_api.status.HTTP_204_NO_CONTENT
     return response, status
 
