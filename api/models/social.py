@@ -29,9 +29,9 @@ EXT_POSTS_TOPIC = 'arn:aws:sns:us-west-2:037954390517:calligre-external-posts'
 DEFAULT_PROFILE_PIC = 'https://s3-us-west-2.amazonaws.com/'
 'calligre-profilepics/default.png'
 POSTS_TABLE_NAME = os.environ.get('POSTS_TABLE', 'calligre-posts')
-
+FLAG_TABLE_NAME = os.environ.get('FLAGS_TABLE', 'flagged')
 posts_table = dynamo.DynamoWrapper(table_name=POSTS_TABLE_NAME)
-flag_table = dynamo.DynamoWrapper(table_name='flagged')
+flag_table = dynamo.DynamoWrapper(table_name=FLAG_TABLE_NAME)
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
@@ -77,9 +77,9 @@ def format_post_response(posts, req_userid=None):
         item['poster_name'] = res.get(item['poster_id'], {}).get('name')
         item['poster_icon'] = res.get(item['poster_id'], {}).get('poster_icon')
         item['current_user_likes'] = req_userid in item.get('likes', [])
-        item['like_count'] = str(item.get('like_count'), 0)
+        item['like_count'] = str(item.get('like_count', 0))
         item['current_user_flagged'] = req_userid in item.get('flags', [])
-        item['flag_count'] = str(item.get('flag_count'), 0)
+        item['flag_count'] = str(item.get('flag_count', 0))
         item.pop('likes', None)
         item.pop('flags', None)
 
@@ -567,6 +567,4 @@ class PostFlag(flask_restful.Resource):
                 'timestamp': timestamp,
             },
         }
-        flag_table.put(params)
-
-        return {'data': None}, status
+        return flag_table.put(params)
