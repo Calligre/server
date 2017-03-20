@@ -28,6 +28,10 @@ RESIZE_BUCKET = os.environ.get('RESIZE_BUCKET',
 EXT_POSTS_TOPIC = 'arn:aws:sns:us-west-2:037954390517:calligre-external-posts'
 DEFAULT_PROFILE_PIC = 'https://s3-us-west-2.amazonaws.com/'
 'calligre-profilepics/default.png'
+POSTS_TABLE_NAME = os.environ.get('POSTS_TABLE', 'calligre-posts')
+FLAG_TABLE_NAME = os.environ.get('FLAGS_TABLE', 'flagged')
+posts_table = dynamo.DynamoWrapper(table_name=POSTS_TABLE_NAME)
+flag_table = dynamo.DynamoWrapper(table_name=FLAG_TABLE_NAME)
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
@@ -61,7 +65,7 @@ def map_id_to_names(uids):
     return mapping, st
 
 
-def format_post_response(posts, req_userid):
+def format_post_response(posts, req_userid=None):
     uids = [item['poster_id'] for item in posts]
     res, st = map_id_to_names(uids)
     if not flask_api.status.is_success(st):
@@ -73,8 +77,11 @@ def format_post_response(posts, req_userid):
         item['poster_name'] = res.get(item['poster_id'], {}).get('name')
         item['poster_icon'] = res.get(item['poster_id'], {}).get('poster_icon')
         item['current_user_likes'] = req_userid in item.get('likes', [])
-        item['like_count'] = str(item.get('like_count'))
+        item['like_count'] = str(item.get('like_count', 0))
+        item['current_user_flagged'] = req_userid in item.get('flags', [])
+        item['flag_count'] = str(item.get('flag_count', 0))
         item.pop('likes', None)
+        item.pop('flags', None)
 
     return posts, st
 
@@ -89,6 +96,17 @@ def decrement_points(req_userid):
     database.patch('user',
                    'UPDATE account SET points = points - 1 where id = %(id)s',
                    {'id': req_userid})
+
+
+def is_user_mod(userid):
+    r, status = database.gets('user',
+                              'SELECT id, capabilities from account \
+                              where id = %(id)s',
+                              {'id': str(userid)})
+    if not flask_api.status.is_success(status):
+        return False
+    cap = r['data'].get('attributes', {}).get('capabilities', 0)
+    return cap >= 4
 
 
 class SocialContentList(flask_restful.Resource):
@@ -106,8 +124,9 @@ class SocialContentList(flask_restful.Resource):
         params = {
             'Limit': limit,
             'ScanIndexForward': False,
-            'ProjectionExpression':
+            'ProjectionExpression': "{},{}".format(
                 '#ts,poster_id,#txt,media_link,like_count,likes',
+                'flag_count,flags'),
             'ExpressionAttributeNames': {
                 '#ts': 'timestamp',
                 '#txt': 'text'
@@ -122,7 +141,7 @@ class SocialContentList(flask_restful.Resource):
                 'timestamp': Decimal(args.get('offset')),
             }
 
-        r, status = dynamo.get(params)
+        r, status = posts_table.get(params)
         if not flask_api.status.is_success(status):
             return r, status
 
@@ -170,6 +189,7 @@ class SocialContentList(flask_restful.Resource):
                 'timestamp': timestamp,
                 'poster_id': userid,
                 'like_count': 0,
+                'flag_count': 0,
             },
             'ConditionExpression': Attr('timestamp').ne(timestamp),
         }
@@ -195,7 +215,7 @@ class SocialContentList(flask_restful.Resource):
                 log.error("Error parsing media link")
                 log.exception(ex)
 
-        r, status = dynamo.put(params)
+        r, status = posts_table.put(params)
         if not flask_api.status.is_success(status):
             return r, status
 
@@ -298,12 +318,12 @@ class SingleSocialContent(flask_restful.Resource):
                 Key('posts').eq('posts') & Key('timestamp').eq(postid),
         }
 
-        r, status = dynamo.get_single(params)
+        r, status = posts_table.get_single(params)
         if not flask_api.status.is_success(status):
             return r, status
 
         userid = _request_ctx_stack.top.current_user['sub']
-        if r[0].get('poster_id') != userid:
+        if r[0].get('poster_id') != userid and not is_user_mod(userid):
             data = {'errors': [{'title': 'client error',
                                 'detail': "can not delete un-owned post"}]}
             return data, flask_api.status.HTTP_403_FORBIDDEN
@@ -318,8 +338,7 @@ class SingleSocialContent(flask_restful.Resource):
         }
 
         decrement_points(userid)
-
-        return dynamo.delete(params)
+        return posts_table.delete(params)
 
     @requires_auth
     def get(self, postid):
@@ -327,7 +346,9 @@ class SingleSocialContent(flask_restful.Resource):
         params = {
             'Limit': 1,
             'ScanIndexForward': False,
-            'ProjectionExpression': '#ts,poster_id,#txt,media_link,like_count',
+            'ProjectionExpression': "{},{}".format(
+                '#ts,poster_id,#txt,media_link,like_count,likes',
+                'flag_count,flags'),
             'ExpressionAttributeNames': {
                 '#ts': 'timestamp',
                 '#txt': 'text'
@@ -336,7 +357,7 @@ class SingleSocialContent(flask_restful.Resource):
                 Key('posts').eq('posts') & Key('timestamp').eq(postid),
         }
 
-        r, status = dynamo.get_single(params)
+        r, status = posts_table.get_single(params)
         if not flask_api.status.is_success(status):
             return r, status
 
@@ -371,7 +392,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
         decrement_points(userid)
 
-        return dynamo.patch(params)
+        return posts_table.patch(params)
 
     @requires_auth
     def get(self, postid):
@@ -382,7 +403,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
                 Key('posts').eq('posts') & Key('timestamp').eq(postid),
         }
 
-        r, status = dynamo.get_single(params)
+        r, status = posts_table.get_single(params)
         if not flask_api.status.is_success(status):
             return r, status
 
@@ -412,4 +433,138 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
         increment_points(userid)
 
-        return dynamo.patch(params)
+        return posts_table.patch(params)
+
+
+class FlaggedPostList(flask_restful.Resource):
+    @requires_auth
+    def get(self):
+        """{"args": {"limit": "(int, default=25)",
+                     "offset": "(float, required)"}}"""
+        userid = _request_ctx_stack.top.current_user['sub']
+        if not is_user_mod(userid):
+            return {'data': None}, flask_api.status.HTTP_403_FORBIDDEN
+        req = flask_restful.reqparse.RequestParser()
+        req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
+        req.add_argument('offset', type=float, location='args', required=False)
+        args = req.parse_args()
+
+        limit = min(args['limit'], MAX_POSTS)
+
+        params = {
+            'Limit': limit,
+            'ProjectionExpression': 'timestamp',
+        }
+
+        if args.get('offset'):
+            params['ExclusiveStartKey'] = {
+                'timestamp': Decimal(args.get('offset')),
+            }
+
+        r, status = flag_table.scan(params)
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        # the flagged list might need to be paginated, store the offset now
+        nextOffset = r.get('LastEvaluatedKey', {}).get('timestamp')
+        if nextOffset:
+            nextOffset = str(nextOffset)
+
+        # Format the list of partition + sort keys for batch_get
+        post_ids = [{
+            'posts': 'posts',
+            'timestamp': item['timestamp']
+        } for item in r.get('Items', [])]
+
+        params = {'RequestItems': {
+            POSTS_TABLE_NAME: {
+                'ProjectionExpression':
+                    '#ts,poster_id,#txt,media_link,flag_count',
+                'ExpressionAttributeNames': {
+                    '#ts': 'timestamp',
+                    '#txt': 'text'
+                },
+                'Keys': post_ids
+            }
+        }}
+
+        r, status = posts_table.batch_get(params)
+        if not flask_api.status.is_success(status):
+            return r, status
+        items = r.get('Responses', {}).get(POSTS_TABLE_NAME, [])
+
+        posts = format_post_response(items)
+
+        body = {
+            'posts': posts,
+            'count': r.get('Count', 0),
+            'nextOffset': nextOffset,
+        }
+
+        return {'data': body}, flask_api.status.HTTP_200_OK
+
+
+class PostFlag(flask_restful.Resource):
+    @requires_auth
+    def delete(self, postid):
+        userid = _request_ctx_stack.top.current_user['sub']
+        timestamp = Decimal(postid)
+        params = {
+            'Key': {
+                'posts': 'posts',
+                'timestamp': timestamp,
+            },
+            'UpdateExpression':
+                'DELETE flags :flag SET flag_count = flag_count - :1',
+            'ExpressionAttributeValues': {
+                ':flag': set([userid]),
+                ':1': 1
+            },
+            'ConditionExpression': Attr('flags').contains(userid),
+            'ReturnValues': 'UPDATED_NEW',
+        }
+
+        r, status = posts_table.patch(params)
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        if r.get('Attributes', {}).get('flag_count', 0) == 0:
+            params = {
+                'Key': {
+                    'timestamp': timestamp,
+                },
+            }
+            return flag_table.delete(params)
+
+        return {'data': None}, status
+
+    @requires_auth
+    def post(self, postid):
+        userid = _request_ctx_stack.top.current_user['sub']
+        timestamp = Decimal(postid)
+        params = {
+            'Key': {
+                'posts': 'posts',
+                'timestamp': timestamp,
+            },
+            'UpdateExpression':
+                'ADD flags :flag SET flag_count = flag_count + :1',
+            'ExpressionAttributeValues': {
+                ':flag': set([userid]),
+                ':1': 1
+            },
+            'ConditionExpression': Not(Attr('flags').contains(userid)),
+        }
+
+        r, status = posts_table.patch(params)
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        # unconditionally create the flag record because we're only
+        # overwritting the parition key attr, which will always be the same
+        params = {
+            'Item': {
+                'timestamp': timestamp,
+            },
+        }
+        return flag_table.put(params)

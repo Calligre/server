@@ -5,17 +5,6 @@ import boto3
 import flask_api
 
 
-AWS_DYNAMO_ACCESS_KEY = os.environ.get('AWS_DYNAMO_ACCESS_KEY')
-AWS_DYNAMO_SECRET_KEY = os.environ.get('AWS_DYNAMO_SECRET_KEY')
-
-DYNAMO_TABLE = os.environ.get('DYNAMO_TABLE', 'calligre-posts')
-DYNAMO_REGION = os.environ.get('DYNAMO_REGION', 'us-west-2')
-
-dynamo_boto = boto3.Session(aws_access_key_id=AWS_DYNAMO_ACCESS_KEY,
-                            aws_secret_access_key=AWS_DYNAMO_SECRET_KEY)
-dynamo = dynamo_boto.resource('dynamodb',
-                              region_name=DYNAMO_REGION).Table(DYNAMO_TABLE)
-
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 
@@ -54,45 +43,68 @@ def inspect_error(e):
 def expect_empty_return(response):
     response, status = inspect_return(response)
     if status == 200:
+        if response.get('Attributes'):
+            return {'data': response.get('Attributes')},\
+                flask_api.status.HTTP_200_OK
         return {'data': None}, flask_api.status.HTTP_204_NO_CONTENT
     return response, status
 
 
-def get(params):
-    try:
-        return inspect_return(dynamo.query(**params))
-    except Exception as e:
-        return inspect_error(e)
+class DynamoWrapper:
+    def __init__(self,
+                 table_name=os.environ.get('DYNAMO_TABLE', 'calligre-posts'),
+                 region=os.environ.get('DYNAMO_REGION', 'us-west-2'),
+                 access_key=os.environ.get('AWS_DYNAMO_ACCESS_KEY'),
+                 secret_key=os.environ.get('AWS_DYNAMO_SECRET_KEY')):
 
+        self._boto = boto3.Session(aws_access_key_id=access_key,
+                                   aws_secret_access_key=secret_key)
+        self.dynamo = self._boto.resource('dynamodb', region_name=region)
+        self.table = self.dynamo.Table(table_name)
 
-def get_single(params):
-    response, status = get(params)
-    if not flask_api.status.is_success(status):
-        return response, status
+    def get(self, params):
+        try:
+            return inspect_return(self.table.query(**params))
+        except Exception as e:
+            return inspect_error(e)
 
-    if response.get('Count') != 1:
-        data = {'errors': [{'title': 'no record found'}]}
-        return data, flask_api.status.HTTP_404_NOT_FOUND
+    def scan(self, params):
+        try:
+            return inspect_return(self.table.scan(**params))
+        except Exception as e:
+            return inspect_error(e)
 
-    return response.get('Items', {}), status
+    def batch_get(self, params):
+        try:
+            return inspect_return(self.dynamo.batch_get_item(**params))
+        except Exception as e:
+            return inspect_error(e)
 
+    def get_single(self, params):
+        response, status = self.get(params)
+        if not flask_api.status.is_success(status):
+            return response, status
 
-def patch(params):
-    try:
-        return expect_empty_return(dynamo.update_item(**params))
-    except Exception as e:
-        return inspect_error(e)
+        if response.get('Count') != 1:
+            data = {'errors': [{'title': 'no record found'}]}
+            return data, flask_api.status.HTTP_404_NOT_FOUND
 
+        return response.get('Items', {}), status
 
-def put(params):
-    try:
-        return expect_empty_return(dynamo.put_item(**params))
-    except Exception as e:
-        return inspect_error(e)
+    def patch(self, params):
+        try:
+            return expect_empty_return(self.table.update_item(**params))
+        except Exception as e:
+            return inspect_error(e)
 
+    def put(self, params):
+        try:
+            return expect_empty_return(self.table.put_item(**params))
+        except Exception as e:
+            return inspect_error(e)
 
-def delete(params):
-    try:
-        return expect_empty_return(dynamo.delete_item(**params))
-    except Exception as e:
-        return inspect_error(e)
+    def delete(self, params):
+        try:
+            return expect_empty_return(self.table.delete_item(**params))
+        except Exception as e:
+            return inspect_error(e)
