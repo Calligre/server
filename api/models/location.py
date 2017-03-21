@@ -3,7 +3,7 @@ import flask_api
 import flask_restful
 import flask_restful.reqparse
 
-from api.auth import requires_auth
+from api.auth import requires_admin, requires_auth
 from api.database import delete, get, gets, patch, post
 
 
@@ -15,6 +15,7 @@ class LocationList(flask_restful.Resource):
                     {'iid': 1})
 
     @requires_auth
+    @requires_admin
     def post(self):
         """{"json": {"name": "(str, required)",
                      "address": "(str, required)"}}"""
@@ -34,6 +35,7 @@ class LocationList(flask_restful.Resource):
 
 class Location(flask_restful.Resource):
     @requires_auth
+    @requires_admin
     def delete(self, lid):
         return delete('location',
                       'DELETE FROM location WHERE id = %(lid)s',
@@ -46,6 +48,7 @@ class Location(flask_restful.Resource):
                    {'lid': lid})
 
     @requires_auth
+    @requires_admin
     def patch(self, lid):
         """{"json": {"name": "(str, default=None)",
                      "address": "(str, default=None)"}}"""

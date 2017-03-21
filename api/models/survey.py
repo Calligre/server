@@ -3,7 +3,7 @@ import flask_api
 import flask_restful
 import flask_restful.reqparse
 
-from api.auth import requires_auth
+from api.auth import requires_admin, requires_auth
 from api.database import delete, get, gets, patch, post
 
 
@@ -13,6 +13,7 @@ class SurveyList(flask_restful.Resource):
         return gets('survey', 'SELECT * FROM survey')
 
     @requires_auth
+    @requires_admin
     def post(self):
         """{"json": {"name": "(str, default='')",
                      "description": "(str, default='')",
@@ -32,6 +33,7 @@ class SurveyList(flask_restful.Resource):
 
 class Survey(flask_restful.Resource):
     @requires_auth
+    @requires_admin
     def delete(self, sid):
         return delete('survey',
                       'DELETE FROM survey WHERE id = %(sid)s',
@@ -44,6 +46,7 @@ class Survey(flask_restful.Resource):
                    {'sid': sid})
 
     @requires_auth
+    @requires_admin
     def patch(self, sid):
         """{"json": {"name": "(str, default=None)",
                      "description": "(str, default=None)",

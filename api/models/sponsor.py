@@ -3,7 +3,7 @@ import flask_api
 import flask_restful
 import flask_restful.reqparse
 
-from api.auth import requires_auth
+from api.auth import requires_admin, requires_auth
 from api.database import delete, get, gets, patch, post
 
 
@@ -15,6 +15,7 @@ class SponsorList(flask_restful.Resource):
                     {'iid': 1})
 
     @requires_auth
+    @requires_admin
     def post(self):
         """{"json": {"name": "(str, required)",
                      "logo": "(str, required)",
@@ -41,6 +42,7 @@ class SponsorList(flask_restful.Resource):
 
 class Sponsor(flask_restful.Resource):
     @requires_auth
+    @requires_admin
     def delete(self, sid):
         return delete('sponsor',
                       'DELETE FROM sponsor WHERE id = %(sid)s',
@@ -53,6 +55,7 @@ class Sponsor(flask_restful.Resource):
                    {'sid': sid})
 
     @requires_auth
+    @requires_admin
     def patch(self, sid):
         """{"json": {"name": "(str, default=None)",
                      "logo": "(str, default=None)",

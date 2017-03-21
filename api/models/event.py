@@ -3,7 +3,7 @@ import flask_api
 import flask_restful
 import flask_restful.reqparse
 
-from api.auth import requires_auth
+from api.auth import requires_admin, requires_auth
 from api.database import delete, get, gets, patch, post
 
 
@@ -31,6 +31,7 @@ class EventList(flask_restful.Resource):
                     'SELECT * FROM event WHERE 1=1 {}'.format(''.join(conds)))
 
     @requires_auth
+    @requires_admin
     def post(self):
         """{"json": {"name": "(str, required)",
                      "description": "(str, default='')",
@@ -70,6 +71,7 @@ class EventUserList(flask_restful.Resource):
 
 class Event(flask_restful.Resource):
     @requires_auth
+    @requires_admin
     def delete(self, eid):
         return delete('event',
                       'DELETE FROM event WHERE id = %(eid)s',
@@ -82,6 +84,7 @@ class Event(flask_restful.Resource):
                    {'eid': eid})
 
     @requires_auth
+    @requires_admin
     def patch(self, eid):
         """{"json": {"name": "(str, default=None)",
                      "description": "(str, default=None)",

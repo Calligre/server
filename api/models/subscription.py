@@ -21,6 +21,13 @@ class SubscriptionEventList(flask_restful.Resource):
         req.add_argument('user_id', type=int, location='json', required=True)
         args = req.parse_args()
 
+        user_id = _request_ctx_stack.top.current_user['sub']
+        if args['user_id'] != user_id:
+            data = {'errors': [{
+                'title': 'unauthorized for subscribe action',
+                'detail': 'may only manage subscriptions on behalf of self'}]}
+            return data, flask_api.status.HTTP_403_FORBIDDEN
+
         return post('subscription',
                     """ INSERT INTO subscription (account_id, event_id)
                         VALUES (%(uid)s, %(eid)s)
@@ -43,6 +50,13 @@ class SubscriptionUserList(flask_restful.Resource):
         req.add_argument('event_id', type=int, location='json', required=True)
         args = req.parse_args()
 
+        user_id = _request_ctx_stack.top.current_user['sub']
+        if uid != user_id:
+            data = {'errors': [{
+                'title': 'unauthorized for subscribe action',
+                'detail': 'may only manage subscriptions on behalf of self'}]}
+            return data, flask_api.status.HTTP_403_FORBIDDEN
+
         return post('subscription',
                     """ INSERT INTO subscription (account_id, event_id)
                         VALUES (%(uid)s, %(eid)s)
@@ -53,6 +67,13 @@ class SubscriptionUserList(flask_restful.Resource):
 class Subscription(flask_restful.Resource):
     @requires_auth
     def delete(self, uid, eid):
+        user_id = _request_ctx_stack.top.current_user['sub']
+        if uid != user_id:
+            data = {'errors': [{
+                'title': 'unauthorized for subscribe action',
+                'detail': 'may only manage subscriptions on behalf of self'}]}
+            return data, flask_api.status.HTTP_403_FORBIDDEN
+
         return delete('subscription',
                       """ DELETE FROM subscription
                           WHERE account_id = %(uid)s

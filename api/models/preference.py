@@ -3,12 +3,13 @@ import flask_api
 import flask_restful
 import flask_restful.reqparse
 
-from api.auth import requires_auth
+from api.auth import requires_admin, requires_auth
 from api.database import delete, get, patch, post
 
 
 class Preference(flask_restful.Resource):
     @requires_auth
+    @requires_admin
     def delete(self):
         return delete('preference',
                       'DELETE FROM preference WHERE id = %(iid)s',
@@ -21,6 +22,7 @@ class Preference(flask_restful.Resource):
                    {'iid': 1})
 
     @requires_auth
+    @requires_admin
     def patch(self):
         """{"json": {"newfeed": "(bool, default=None)",
                      "events": "(bool, default=None)",
@@ -71,6 +73,7 @@ class Preference(flask_restful.Resource):
                      item)
 
     @requires_auth
+    @requires_admin
     def post(self):
         """{"json": {"newsfeed": "(bool, default=True)",
                      "events": "(bool, default=True)",
