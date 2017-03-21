@@ -98,18 +98,6 @@ def decrement_points(req_userid):
                    {'id': req_userid})
 
 
-def is_user_mod(userid):
-    r, status = database.gets('user',
-                              """ SELECT id, capabilities
-                                  FROM account
-                                  WHERE id = %(id)s """,
-                              {'id': str(userid)})
-    if not flask_api.status.is_success(status):
-        return False
-    cap = r['data'].get('attributes', {}).get('capabilities', 0)
-    return cap >= 4
-
-
 class SocialContentList(flask_restful.Resource):
     @requires_auth
     def get(self):
@@ -443,9 +431,10 @@ class FlaggedPostList(flask_restful.Resource):
     def get(self):
         """{"args": {"limit": "(int, default=25)",
                      "offset": "(float, required)"}}"""
-        userid = _request_ctx_stack.top.current_user['sub']
-        if not is_user_mod(userid):
+        is_admin = _request_ctx_stack.top.current_user['cap'] >= 4
+        if not is_admin:
             return {'data': None}, flask_api.status.HTTP_403_FORBIDDEN
+
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
         req.add_argument('offset', type=float, location='args', required=False)
