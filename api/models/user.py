@@ -3,6 +3,7 @@ import base64
 import os
 
 import boto3
+from flask import _request_ctx_stack
 import flask_api
 import flask_restful
 import flask_restful.reqparse

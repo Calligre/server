@@ -1,4 +1,6 @@
 # pylint: disable=R0201
+from flask import _request_ctx_stack
+import flask_api
 import flask_restful
 import flask_restful.reqparse
 
