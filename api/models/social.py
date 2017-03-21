@@ -100,8 +100,9 @@ def decrement_points(req_userid):
 
 def is_user_mod(userid):
     r, status = database.gets('user',
-                              'SELECT id, capabilities from account \
-                              where id = %(id)s',
+                              """ SELECT id, capabilities
+                                  FROM account
+                                  WHERE id = %(id)s """,
                               {'id': str(userid)})
     if not flask_api.status.is_success(status):
         return False
@@ -323,7 +324,8 @@ class SingleSocialContent(flask_restful.Resource):
             return r, status
 
         userid = _request_ctx_stack.top.current_user['sub']
-        if r[0].get('poster_id') != userid and not is_user_mod(userid):
+        is_admin = _request_ctx_stack.top.current_user['cap'] >= 4
+        if r[0].get('poster_id') != userid and not is_admin:
             data = {'errors': [{'title': 'client error',
                                 'detail': "can not delete un-owned post"}]}
             return data, flask_api.status.HTTP_403_FORBIDDEN

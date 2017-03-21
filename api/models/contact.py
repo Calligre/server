@@ -3,7 +3,7 @@ import flask_api
 import flask_restful
 import flask_restful.reqparse
 
-from api.auth import requires_auth
+from api.auth import requires_admin, requires_auth
 from api.database import delete, get, gets, patch, post
 
 
@@ -15,6 +15,7 @@ class ContactList(flask_restful.Resource):
                     {'iid': 1})
 
     @requires_auth
+    @requires_admin
     def post(self):
         """{"json": {"name": "(str, required)",
                      "phone": "(str, required)"}}"""
@@ -34,6 +35,7 @@ class ContactList(flask_restful.Resource):
 
 class Contact(flask_restful.Resource):
     @requires_auth
+    @requires_admin
     def delete(self, cid):
         return delete('contact',
                       'DELETE FROM contact WHERE id = %(cid)s',
@@ -46,6 +48,7 @@ class Contact(flask_restful.Resource):
                    {'cid': cid})
 
     @requires_auth
+    @requires_admin
     def patch(self, cid):
         """{"json": {"name": "(str, default=None)",
                      "phone": "(str, default=None)"}}"""

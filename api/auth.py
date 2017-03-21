@@ -8,6 +8,8 @@ from flask import _request_ctx_stack
 import flask_api
 import jwt
 
+from api.database import get
+
 
 AUTH0_CLIENT_ID = os.environ.get('AUTH0_CLIENT_ID', '')
 AUTH0_SECRET_ID = os.environ.get('AUTH0_SECRET_ID', '')
@@ -50,6 +52,27 @@ def enabled():
     return AUTH0_CLIENT_ID and AUTH0_SECRET_ID
 
 
+def requires_admin(function):
+    @functools.wraps(function)
+    def decorated(*args, **kwargs):
+        payload = _request_ctx_stack.top.current_user
+        if not payload:
+            data = {'errors': [{
+                'title': 'authorization error',
+                'detail': 'user is not logged in'}]}
+            return data, flask_api.status.HTTP_401_UNAUTHORIZED
+
+        if payload['cap'] < 4:
+            data = {'errors': [{
+                'title': 'access denied',
+                'detail': 'user is not an admin'}]}
+            return data, flask_api.status.HTTP_403_FORBIDDEN
+
+        return function(*args, **kwargs)
+
+    return decorated
+
+
 def requires_auth(function):
     # pylint: disable=too-many-return-statements
     @functools.wraps(function)
@@ -61,6 +84,7 @@ def requires_auth(function):
                 'iat': 946684800,   # 2000-01-01
                 'iss': 'https://calligre.auth0.com/',
                 'sub': '1',         # user ID
+                'cap': 7,
             }
             return function(*args, **kwargs)
 
@@ -88,6 +112,16 @@ def requires_auth(function):
         payload, status = decode(token)
         if not flask_api.status.is_success(status):
             return payload, status
+
+        body, status = get('user',
+                           """ SELECT capabilities
+                               FROM account
+                               WHERE id = %(aud)s
+                           """, payload)
+        if not flask_api.status.is_success(status):
+            return body, status
+
+        payload['cap'] = int(body['data']['capabilities'])
 
         _request_ctx_stack.top.current_user = payload
         return function(*args, **kwargs)

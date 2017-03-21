@@ -3,7 +3,7 @@ import flask_api
 import flask_restful
 import flask_restful.reqparse
 
-from api.auth import requires_auth
+from api.auth import requires_admin, requires_auth
 from api.database import delete, get, gets, patch, post
 
 
@@ -22,6 +22,7 @@ class BroadcastList(flask_restful.Resource):
                         WHERE 1=1 {} """.format(''.join(conds)))
 
     @requires_auth
+    @requires_admin
     def post(self):
         """{"json": {"message": "(str, required)",
                      "expirytime": "(int, required)"}}"""
@@ -40,6 +41,7 @@ class BroadcastList(flask_restful.Resource):
 
 class Broadcast(flask_restful.Resource):
     @requires_auth
+    @requires_admin
     def delete(self, bid):
         return delete('broadcast',
                       'DELETE FROM broadcast WHERE id = %(bid)s',
@@ -52,6 +54,7 @@ class Broadcast(flask_restful.Resource):
                    {'bid': bid})
 
     @requires_auth
+    @requires_admin
     def patch(self, bid):
         """{"json": {"message": "(str, default=None)",
                      "expirytime": "(int, default=None)"}}"""

@@ -3,15 +3,16 @@ import base64
 import os
 
 import boto3
+from flask import _request_ctx_stack
 import flask_api
 import flask_restful
 import flask_restful.reqparse
 
-from api.auth import requires_auth
+from api.auth import requires_admin, requires_auth
 from api.database import delete, gets, patch, post
 
 
-PROFILE_PIC_BCKT = os.environ.get("PROFILE_PIC_BUCKET", "calligre-profilepics")
+PROFILE_PIC_BCKT = os.environ.get('PROFILE_PIC_BUCKET', 'calligre-profilepics')
 
 
 class UserPhoto(flask_restful.Resource):
@@ -21,6 +22,13 @@ class UserPhoto(flask_restful.Resource):
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('data', type=str, location='json', required=True)
         args = req.parse_args()
+
+        user_id = _request_ctx_stack.top.current_user['sub']
+        if uid != user_id:
+            data = {'errors': [{
+                'title': 'unauthorized for user action',
+                'detail': 'may only manage own user'}]}
+            return data, flask_api.status.HTTP_403_FORBIDDEN
 
         filename = 'profilepic-{}.jpg'.format(uid)
         photo = base64.b64decode(args['data'].split(',')[1])
@@ -145,6 +153,7 @@ class UserList(flask_restful.Resource):
 
 class User(flask_restful.Resource):
     @requires_auth
+    @requires_admin
     def delete(self, uid):
         return delete('user',
                       'DELETE FROM account WHERE id = %(uid)s',
@@ -207,6 +216,13 @@ class User(flask_restful.Resource):
         req.add_argument('capabilities', type=int, location='json',
                          default=None)
         args = req.parse_args()
+
+        user_id = _request_ctx_stack.top.current_user['sub']
+        if uid != user_id:
+            data = {'errors': [{
+                'title': 'unauthorized for user action',
+                'detail': 'may only manage own user'}]}
+            return data, flask_api.status.HTTP_403_FORBIDDEN
 
         body, stat = self.get(uid)
         if stat != flask_api.status.HTTP_200_OK:

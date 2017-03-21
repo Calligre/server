@@ -3,7 +3,7 @@ import flask_api
 import flask_restful
 import flask_restful.reqparse
 
-from api.auth import requires_auth
+from api.auth import requires_admin, requires_auth
 from api.database import delete, get, gets, patch, post
 
 
@@ -15,6 +15,7 @@ class CardList(flask_restful.Resource):
                     {'iid': 1})
 
     @requires_auth
+    @requires_admin
     def post(self):
         """{"json": {"data": "(str, required)"}}"""
         req = flask_restful.reqparse.RequestParser()
@@ -32,6 +33,7 @@ class CardList(flask_restful.Resource):
 
 class Card(flask_restful.Resource):
     @requires_auth
+    @requires_admin
     def delete(self, cid):
         return delete('card',
                       'DELETE FROM card WHERE id = %(cid)s',
@@ -44,6 +46,7 @@ class Card(flask_restful.Resource):
                    {'cid': cid})
 
     @requires_auth
+    @requires_admin
     def patch(self, cid):
         """{"json": {"data": "(str, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
