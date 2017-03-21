@@ -8,6 +8,7 @@ import flask
 from flask import _request_ctx_stack
 import flask_api
 import flask_restful
+from raven.contrib.flask import Sentry
 
 import api.auth
 import api.models.broadcast
@@ -36,6 +37,7 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 app = flask.Flask(__name__)
 app.secret_key = SECRET_KEY
 app.url_map.strict_slashes = False
+sentry = Sentry(app, logging=True, level=logging.INFO)
 
 
 restful = flask_restful.Api(app, prefix='/api')
