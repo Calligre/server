@@ -137,6 +137,10 @@ class UserList(flask_restful.Resource):
         req.add_argument('capabilities', type=int, location='json', default=1)
         args = req.parse_args()
 
+        user_id = _request_ctx_stack.top.current_user['sub']
+        if args['id'] != user_id:
+            args['id'] = user_id
+
         return post('user',
                     """ INSERT INTO account (id, first_name, last_name, email,
                                              description, organization, photo,
