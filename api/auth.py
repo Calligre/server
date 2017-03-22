@@ -113,7 +113,6 @@ def requires_auth(function):
         if not flask_api.status.is_success(status):
             return payload, status
 
-        payload['cap'] = 0
         body, status = get('user',
                            """ SELECT capabilities
                                FROM account
@@ -121,6 +120,9 @@ def requires_auth(function):
                            """, payload)
         if flask_api.status.is_success(status):
             payload['cap'] = int(body['data']['capabilities'])
+        else:
+            log.warning('Attempted admin access from user "%s"', str(payload))
+            payload['cap'] = 0
 
         _request_ctx_stack.top.current_user = payload
         return function(*args, **kwargs)
