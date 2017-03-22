@@ -13,6 +13,7 @@ from raven.contrib.flask import Sentry
 import api.auth
 import api.models.broadcast
 import api.models.card
+import api.models.conference
 import api.models.contact
 import api.models.event
 import api.models.info
@@ -43,6 +44,8 @@ sentry = Sentry(app, logging=True, level=logging.INFO)
 restful = flask_restful.Api(app, prefix='/api')
 restful.add_resource(api.models.broadcast.Broadcast, '/broadcast/<int:bid>')
 restful.add_resource(api.models.broadcast.BroadcastList, '/broadcast')
+
+restful.add_resource(api.models.conference.ConferenceList, '/conference')
 
 restful.add_resource(api.models.event.Event, '/event/<int:eid>')
 restful.add_resource(api.models.event.EventList, '/event')

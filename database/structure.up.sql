@@ -108,4 +108,9 @@ CREATE TABLE survey (
     link            text        NOT NULL
 );
 
+CREATE TABLE conference (
+    id              serial      PRIMARY KEY,
+    url             text        NOT NULL
+);
+
 COMMIT;
