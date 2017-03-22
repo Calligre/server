@@ -488,7 +488,6 @@ class FlaggedPostList(flask_restful.Resource):
 
         body = {
             'posts': posts,
-            'count': r.get('Count', 0),
             'nextOffset': nextOffset,
         }
 
@@ -499,27 +498,41 @@ class PostFlag(flask_restful.Resource):
     @requires_auth
     def delete(self, postid):
         userid = _request_ctx_stack.top.current_user['sub']
+        is_admin = _request_ctx_stack.top.current_user['cap'] >= 4
         timestamp = Decimal(postid)
-        params = {
-            'Key': {
-                'posts': 'posts',
-                'timestamp': timestamp,
-            },
-            'UpdateExpression':
-                'DELETE flags :flag SET flag_count = flag_count - :1',
-            'ExpressionAttributeValues': {
-                ':flag': set([userid]),
-                ':1': 1
-            },
-            'ConditionExpression': Attr('flags').contains(userid),
-            'ReturnValues': 'UPDATED_NEW',
-        }
+        if not is_admin:
+            params = {
+                'Key': {
+                    'posts': 'posts',
+                    'timestamp': timestamp,
+                },
+                'UpdateExpression':
+                    'DELETE flags :flag SET flag_count = flag_count - :1',
+                'ExpressionAttributeValues': {
+                    ':flag': set([userid]),
+                    ':1': 1
+                },
+                'ConditionExpression': Attr('flags').contains(userid),
+                'ReturnValues': 'UPDATED_NEW',
+            }
+        else:
+            params = {
+                'Key': {
+                    'posts': 'posts',
+                    'timestamp': timestamp,
+                },
+                'UpdateExpression':
+                    'REMOVE flags SET flag_count = :0',
+                'ExpressionAttributeValues': {
+                    ':0': 0
+                },
+            }
 
         r, status = posts_table.patch(params)
         if not flask_api.status.is_success(status):
             return r, status
 
-        if r.get('Attributes', {}).get('flag_count', 0) == 0:
+        if r.get('Attributes', {}).get('flag_count', 0) == 0 or is_admin:
             params = {
                 'Key': {
                     'timestamp': timestamp,
@@ -559,32 +572,3 @@ class PostFlag(flask_restful.Resource):
             },
         }
         return flag_table.put(params)
-
-
-class AdminUnflagPost(flask_restful.Resource):
-    @requires_auth
-    @requires_admin
-    def post(self, postid):
-        timestamp = Decimal(postid)
-        params = {
-            'Key': {
-                'posts': 'posts',
-                'timestamp': timestamp,
-            },
-            'UpdateExpression':
-                'REMOVE flags SET flag_count = :0',
-            'ExpressionAttributeValues': {
-                ':0': 0
-            },
-        }
-
-        r, status = posts_table.patch(params)
-        if not flask_api.status.is_success(status):
-            return r, status
-
-        params = {
-            'Key': {
-                'timestamp': timestamp,
-            },
-        }
-        return flag_table.delete(params)
