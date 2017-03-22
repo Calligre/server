@@ -114,12 +114,12 @@ def requires_auth(function):
             return payload, status
 
         body, status = get('user',
-                           """ SELECT capabilities
+                           """ SELECT id, capabilities
                                FROM account
                                WHERE id = %(sub)s
                            """, payload)
         if flask_api.status.is_success(status):
-            payload['cap'] = int(body['data']['capabilities'])
+            payload['cap'] = int(body['data']['attributes']['capabilities'])
         else:
             log.warning('Attempted admin access from "%s"', payload['sub'])
             payload['cap'] = 0
