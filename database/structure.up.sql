@@ -110,7 +110,9 @@ CREATE TABLE survey (
 
 CREATE TABLE conference (
     id              serial      PRIMARY KEY,
-    url             text        NOT NULL
+    name            text        NOT NULL,
+    url             text        NOT NULL,
+    logo            text        NOT NULL DEFAULT ''
 );
 
 COMMIT;
