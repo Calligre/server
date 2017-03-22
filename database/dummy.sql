@@ -54,8 +54,8 @@ INSERT INTO survey (name, description, link)
     VALUES ('Sample Survey', 'Tell us all your secrets!', 'https://google.ca');
 
 
-INSERT INTO conference (url)
-    VALUES ('dev.calligre.com'),
-           ('symposium.calligre.com');
+INSERT INTO conference (name, url, logo)
+    VALUES ('dev', 'dev.calligre.com', 'https://i.snag.gy/C4Xhed.jpg'),
+           ('SE Symposium 2017', 'symposium.calligre.com', 'https://upload.wikimedia.org/wikipedia/en/0/03/Uwaterloo_seal.gif');
 
 COMMIT;
