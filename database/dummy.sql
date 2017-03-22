@@ -53,4 +53,9 @@ INSERT INTO broadcast (message, expiryTime)
 INSERT INTO survey (name, description, link)
     VALUES ('Sample Survey', 'Tell us all your secrets!', 'https://google.ca');
 
+
+INSERT INTO conference (url)
+    VALUES ('dev.calligre.com'),
+           ('symposium.calligre.com');
+
 COMMIT;
