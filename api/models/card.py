@@ -19,7 +19,7 @@ class CardList(flask_restful.Resource):
     def post(self):
         """{"json": {"data": "(str, required)"}}"""
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('data', type=str, card='json', required=True)
+        req.add_argument('data', type=str, location='json', required=True)
         args = req.parse_args()
 
         args['iid'] = 1
@@ -50,7 +50,7 @@ class Card(flask_restful.Resource):
     def patch(self, cid):
         """{"json": {"data": "(str, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('data', type=str, card='json', default=None)
+        req.add_argument('data', type=str, location='json', default=None)
         args = req.parse_args()
         args = {k: v for k, v in args.items() if v is not None}
 
