@@ -26,6 +26,7 @@ def delete(_resource, query, params):
 
             affected = cursor.rowcount
     except Exception as e:
+        db.rollback()
         log.exception(e)
         data = {'errors': [{
             'title': 'database error',
@@ -48,6 +49,7 @@ def get(resource, query, params):
             columns = [d[0] for d in cursor.description]
             record = cursor.fetchone()
     except Exception as e:
+        db.rollback()
         log.exception(e)
         data = {'errors': [{
             'title': 'database error',
@@ -73,6 +75,7 @@ def gets(resource, query, params=None):
             columns = [d[0] for d in cursor.description]
             records = cursor.fetchall()
     except Exception as e:
+        db.rollback()
         log.exception(e)
         data = {'errors': [{
             'title': 'database error',
@@ -97,6 +100,7 @@ def patch(_resource, query, params):
 
             affected = cursor.rowcount
     except Exception as e:
+        db.rollback()
         log.exception(e)
         data = {'errors': [{
             'title': 'database error',
@@ -119,6 +123,7 @@ def post(resource, query, params):
             uuid = cursor.fetchone()[0]
             db.commit()
     except Exception as e:
+        db.rollback()
         log.exception(e)
         data = {'errors': [{
             'title': 'database error',
