@@ -122,6 +122,12 @@ def post(resource, query, params):
             cursor.execute(query, params)
             uuid = cursor.fetchone()[0]
             db.commit()
+    except psycopg2.IntegrityError as e:
+        db.rollback()
+        data = {'errors': [{
+            'title': 'database error',
+            'detail': 'could not create duplicate record'}]}
+        return data, flask_api.status.HTTP_409_CONFLICT
     except Exception as e:
         db.rollback()
         log.exception(e)
