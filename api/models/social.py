@@ -15,7 +15,7 @@ import flask_restful
 import flask_restful.reqparse
 
 from api import database, dynamo
-from api.auth import requires_auth
+from api.auth import requires_admin, requires_auth
 
 
 AWS_SNS_ACCESS_KEY = os.environ.get('AWS_SNS_ACCESS_KEY')
@@ -428,13 +428,10 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
 class FlaggedPostList(flask_restful.Resource):
     @requires_auth
+    @requires_admin
     def get(self):
         """{"args": {"limit": "(int, default=25)",
                      "offset": "(float, required)"}}"""
-        is_admin = _request_ctx_stack.top.current_user['cap'] >= 4
-        if not is_admin:
-            return {'data': None}, flask_api.status.HTTP_403_FORBIDDEN
-
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
         req.add_argument('offset', type=float, location='args', required=False)
@@ -562,3 +559,32 @@ class PostFlag(flask_restful.Resource):
             },
         }
         return flag_table.put(params)
+
+
+class AdminUnflagPost(flask_restful.Resource):
+    @requires_auth
+    @requires_admin
+    def post(self, postid):
+        timestamp = Decimal(postid)
+        params = {
+            'Key': {
+                'posts': 'posts',
+                'timestamp': timestamp,
+            },
+            'UpdateExpression':
+                'REMOVE flags SET flag_count = :0',
+            'ExpressionAttributeValues': {
+                ':0': 0
+            },
+        }
+
+        r, status = posts_table.patch(params)
+        if not flask_api.status.is_success(status):
+            return r, status
+
+        params = {
+            'Key': {
+                'timestamp': timestamp,
+            },
+        }
+        return flag_table.delete(params)

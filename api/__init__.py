@@ -75,6 +75,8 @@ restful.add_resource(api.models.social.SingleSocialContentLikes,
                      '/social/<float:postid>/likes')
 restful.add_resource(api.models.social.PostFlag,
                      '/social/<float:postid>/flag')
+restful.add_resource(api.models.social.AdminUnflagPost,
+                     '/social/<float:postid>/unflag')
 
 restful.add_resource(api.models.stream.StreamList, '/stream')
 
