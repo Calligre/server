@@ -444,7 +444,10 @@ class FlaggedPostList(flask_restful.Resource):
 
         params = {
             'Limit': limit,
-            'ProjectionExpression': 'timestamp',
+            'ProjectionExpression': '#ts',
+            'ExpressionAttributeNames': {
+                '#ts': 'timestamp',
+            }
         }
 
         if args.get('offset'):
