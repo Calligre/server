@@ -22,11 +22,11 @@ class SponsorList(flask_restful.Resource):
                      "level": "(str, default='')",
                      "website": "(str, default='')"}}"""
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('name', type=str, sponsor='json', required=True)
-        req.add_argument('logo', type=str, sponsor='json', required=True)
+        req.add_argument('name', type=str, location='json', required=True)
+        req.add_argument('logo', type=str, location='json', required=True)
 
-        req.add_argument('level', type=str, sponsor='json', default='')
-        req.add_argument('website', type=str, sponsor='json', default='')
+        req.add_argument('level', type=str, location='json', default='')
+        req.add_argument('website', type=str, location='json', default='')
         args = req.parse_args()
 
         args['iid'] = 1
@@ -62,11 +62,11 @@ class Sponsor(flask_restful.Resource):
                      "level": "(str, default=None)",
                      "website": "(str, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
-        req.add_argument('name', type=str, sponsor='json', default=None)
-        req.add_argument('logo', type=str, sponsor='json', default=None)
+        req.add_argument('name', type=str, location='json', default=None)
+        req.add_argument('logo', type=str, location='json', default=None)
 
-        req.add_argument('level', type=str, sponsor='json', default=None)
-        req.add_argument('website', type=str, sponsor='json', default=None)
+        req.add_argument('level', type=str, location='json', default=None)
+        req.add_argument('website', type=str, location='json', default=None)
         args = req.parse_args()
         args = {k: v for k, v in args.items() if v is not None}
 
