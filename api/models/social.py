@@ -18,13 +18,16 @@ from api import database, dynamo
 from api.auth import requires_admin, requires_auth
 
 
-MAX_POSTS = 25
+MAX_POSTS = os.environ.get('MAX_POSTS', 25)
 UPLOAD_BUCKET = os.environ.get('UPLOAD_BUCKET', 'calligre-images')
 RESIZE_BUCKET = os.environ.get('RESIZE_BUCKET',
                                'calligre-images-pending-resize')
-EXT_POSTS_TOPIC = 'arn:aws:sns:us-west-2:037954390517:calligre-external-posts'
-DEFAULT_PROFILE_PIC = 'https://s3-us-west-2.amazonaws.com/'
-'calligre-profilepics/default.png'
+EXT_POSTS_TOPIC = os.environ.get('EXT_POSTS_TOPIC',
+                                 'arn:aws:sns:us-west-2:037954390517:'
+                                 'calligre-external-posts')
+DEFAULT_PROFILE_PIC = os.environ.get('DEFAULT_PROFILE_PIC',
+                                     'https://s3-us-west-2.amazonaws.com/'
+                                     'calligre-profilepics/default.png')
 POSTS_TABLE_NAME = os.environ.get('POSTS_TABLE', 'calligre-posts')
 FLAG_TABLE_NAME = os.environ.get('FLAGS_TABLE', 'flagged')
 posts_table = dynamo.DynamoWrapper(table_name=POSTS_TABLE_NAME)
@@ -219,8 +222,8 @@ class SocialContentList(flask_restful.Resource):
             'text': params['Item'].get('text'),
             'media_link': params['Item'].get('media_link'),
             'poster_id': userid,
-            'poster_name': user_info[userid].get('name'),
-            'poster_icon': user_info[userid].get('poster_icon'),
+            'poster_name': user_info.get('userid', {}).get('name'),
+            'poster_icon': user_info.get('userid', {}).get('poster_icon'),
         }
         return {'data': data}, flask_api.status.HTTP_201_CREATED
 
