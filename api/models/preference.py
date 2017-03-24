@@ -15,7 +15,6 @@ class Preference(flask_restful.Resource):
                       'DELETE FROM preference WHERE id = %(iid)s',
                       {'iid': 1})
 
-    @requires_auth
     def get(self):
         return get('preference',
                    'SELECT * FROM preference WHERE id = %(iid)s',
