@@ -18,9 +18,6 @@ from api import database, dynamo
 from api.auth import requires_admin, requires_auth
 
 
-AWS_SNS_ACCESS_KEY = os.environ.get('AWS_SNS_ACCESS_KEY')
-AWS_SNS_SECRET_KEY = os.environ.get('AWS_SNS_SECRET_KEY')
-
 MAX_POSTS = 25
 UPLOAD_BUCKET = os.environ.get('UPLOAD_BUCKET', 'calligre-images')
 RESIZE_BUCKET = os.environ.get('RESIZE_BUCKET',
@@ -262,9 +259,7 @@ class SocialContentList(flask_restful.Resource):
         log.debug('Posting to FB: %s; posting to Twitter: %s', fb, tw)
 
         try:
-            sns_boto = boto3.Session(aws_access_key_id=AWS_SNS_ACCESS_KEY,
-                                     aws_secret_access_key=AWS_SNS_SECRET_KEY)
-            client = sns_boto.client('sns')
+            client = boto3.client('sns')
             response = client.publish(**params)
             log.debug('Message sent: %s', response.get('MessageId'))
         except Exception as e:

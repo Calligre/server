@@ -23,8 +23,3 @@ _ = os.environ['DB_USER']
 
 _ = os.environ['AUTH0_CLIENT_ID']
 _ = os.environ['AUTH0_SECRET_ID']
-
-_ = os.environ['AWS_DYNAMO_ACCESS_KEY']
-_ = os.environ['AWS_DYNAMO_SECRET_KEY']
-_ = os.environ['AWS_SNS_ACCESS_KEY']
-_ = os.environ['AWS_SNS_SECRET_KEY']
