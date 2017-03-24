@@ -43,6 +43,7 @@ CREATE TABLE sponsor (
     info_id         integer     NOT NULL REFERENCES info(id) ON DELETE CASCADE,
     name            text        NOT NULL,
     logo            text        NOT NULL,                -- URL
+    rank            integer     NOT NULL DEFAULT 0,
     level           text        NOT NULL DEFAULT '',
     website         text        NOT NULL DEFAULT ''      -- URL
 );

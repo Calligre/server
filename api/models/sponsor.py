@@ -19,12 +19,14 @@ class SponsorList(flask_restful.Resource):
     def post(self):
         """{"json": {"name": "(str, required)",
                      "logo": "(str, required)",
+                     "rank": "(int, default=0)",
                      "level": "(str, default='')",
                      "website": "(str, default='')"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('name', type=str, location='json', required=True)
         req.add_argument('logo', type=str, location='json', required=True)
 
+        req.add_argument('rank', type=int, location='json', default=0)
         req.add_argument('level', type=str, location='json', default='')
         req.add_argument('website', type=str, location='json', default='')
         args = req.parse_args()
@@ -32,10 +34,10 @@ class SponsorList(flask_restful.Resource):
         args['iid'] = 1
 
         return post('sponsor',
-                    """ INSERT INTO sponsor (info_id, name, logo, level,
+                    """ INSERT INTO sponsor (info_id, name, logo, rank, level,
                                              website)
-                        VALUES (%(iid)s, %(name)s, %(logo)s, %(level)s,
-                                %(website)s)
+                        VALUES (%(iid)s, %(name)s, %(logo)s, %(rank)s,
+                                %(level)s, %(website)s)
                         RETURNING id """,
                     args)
 
@@ -59,12 +61,14 @@ class Sponsor(flask_restful.Resource):
     def patch(self, sid):
         """{"json": {"name": "(str, default=None)",
                      "logo": "(str, default=None)",
+                     "rank": "(int, default=None)",
                      "level": "(str, default=None)",
                      "website": "(str, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('name', type=str, location='json', default=None)
         req.add_argument('logo', type=str, location='json', default=None)
 
+        req.add_argument('rank', type=int, location='json', default=None)
         req.add_argument('level', type=str, location='json', default=None)
         req.add_argument('website', type=str, location='json', default=None)
         args = req.parse_args()
@@ -80,7 +84,8 @@ class Sponsor(flask_restful.Resource):
 
         return patch('sponsor',
                      """ UPDATE sponsor
-                         SET (name, logo, level, website) =
-                             (%(name)s, %(logo)s, %(level)s, %(website)s)
+                         SET (name, logo, rank, level, website) =
+                             (%(name)s, %(logo)s, %(rank)s, %(level)s,
+                              %(website)s)
                          WHERE id = %(id)s """,
                      item)
