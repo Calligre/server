@@ -38,7 +38,8 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 app = flask.Flask(__name__)
 app.secret_key = SECRET_KEY
 app.url_map.strict_slashes = False
-sentry = Sentry(app, logging=True, level=logging.INFO)
+if os.environ.get('SENTRY_DSN'):
+    sentry = Sentry(app, logging=True, level=logging.INFO)
 
 
 restful = flask_restful.Api(app, prefix='/api')
