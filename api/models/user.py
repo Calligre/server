@@ -245,6 +245,6 @@ class User(flask_restful.Resource):
                              (%(first_name)s, %(last_name)s, %(email)s,
                               %(description)s, %(organization)s, %(photo)s,
                               %(points)s, %(private)s, %(facebook)s,
-                              %(twitter)s, %(linkedin)s, %(capabilities)s)
+                              %(linkedin)s, %(twitter)s, %(capabilities)s)
                          WHERE id = %(id)s """,
                      item)
