@@ -4,7 +4,7 @@ import os
 import random
 import string
 import time
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from urllib.parse import urlparse
 
 import boto3
@@ -103,10 +103,10 @@ class SocialContentList(flask_restful.Resource):
     @requires_auth
     def get(self):
         """{"args": {"limit": "(int, default=25)",
-                     "offset": "(float, required)"}}"""
+                     "offset": "(str)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
-        req.add_argument('offset', type=float, location='args', required=False)
+        req.add_argument('offset', type=str, location='args', required=False)
         args = req.parse_args()
 
         limit = min(args['limit'], MAX_POSTS)
@@ -126,10 +126,18 @@ class SocialContentList(flask_restful.Resource):
         }
 
         if args.get('offset'):
-            params['ExclusiveStartKey'] = {
-                'posts': 'posts',
-                'timestamp': Decimal(args.get('offset')),
-            }
+            try:
+                params['ExclusiveStartKey'] = {
+                    'posts': 'posts',
+                    'timestamp': Decimal(args.get('offset')),
+                }
+            except InvalidOperation:
+                data = {'errors': [{
+                    'title': 'client error',
+                    'detail': 'Expected a decimal number for offset, got {}'
+                    .format(args.get('offset'))
+                }]}
+                return data, flask_api.status.HTTP_400_BAD_REQUEST
 
         r, status = posts_table.get(params)
         if not flask_api.status.is_success(status):
@@ -430,10 +438,10 @@ class FlaggedPostList(flask_restful.Resource):
     @requires_admin
     def get(self):
         """{"args": {"limit": "(int, default=25)",
-                     "offset": "(float, required)"}}"""
+                     "offset": "(str)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
-        req.add_argument('offset', type=float, location='args', required=False)
+        req.add_argument('offset', type=str, location='args', required=False)
         args = req.parse_args()
 
         limit = min(args['limit'], MAX_POSTS)
@@ -447,9 +455,17 @@ class FlaggedPostList(flask_restful.Resource):
         }
 
         if args.get('offset'):
-            params['ExclusiveStartKey'] = {
-                'timestamp': Decimal(args.get('offset')),
-            }
+            try:
+                params['ExclusiveStartKey'] = {
+                    'timestamp': Decimal(args.get('offset')),
+                }
+            except InvalidOperation:
+                data = {'errors': [{
+                    'title': 'client error',
+                    'detail': 'Expected a decimal number for offset, got {}'
+                    .format(args.get('offset'))
+                }]}
+                return data, flask_api.status.HTTP_400_BAD_REQUEST
 
         r, status = flag_table.scan(params)
         if not flask_api.status.is_success(status):
