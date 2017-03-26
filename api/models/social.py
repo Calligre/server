@@ -4,7 +4,7 @@ import os
 import random
 import string
 import time
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from urllib.parse import urlparse
 
 import boto3
@@ -30,6 +30,7 @@ DEFAULT_PROFILE_PIC = os.environ.get('DEFAULT_PROFILE_PIC',
                                      'calligre-profilepics/default.png')
 POSTS_TABLE_NAME = os.environ.get('POSTS_TABLE', 'calligre-posts')
 FLAG_TABLE_NAME = os.environ.get('FLAGS_TABLE', 'flagged')
+REGION = os.environ.get('DYNAMO_REGION', 'us-west-2')
 posts_table = dynamo.DynamoWrapper(table_name=POSTS_TABLE_NAME)
 flag_table = dynamo.DynamoWrapper(table_name=FLAG_TABLE_NAME)
 
@@ -102,10 +103,10 @@ class SocialContentList(flask_restful.Resource):
     @requires_auth
     def get(self):
         """{"args": {"limit": "(int, default=25)",
-                     "offset": "(float, required)"}}"""
+                     "offset": "(str, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
-        req.add_argument('offset', type=float, location='args', required=False)
+        req.add_argument('offset', type=str, location='args', required=False)
         args = req.parse_args()
 
         limit = min(args['limit'], MAX_POSTS)
@@ -125,10 +126,18 @@ class SocialContentList(flask_restful.Resource):
         }
 
         if args.get('offset'):
-            params['ExclusiveStartKey'] = {
-                'posts': 'posts',
-                'timestamp': Decimal(args.get('offset')),
-            }
+            try:
+                params['ExclusiveStartKey'] = {
+                    'posts': 'posts',
+                    'timestamp': Decimal(args.get('offset')),
+                }
+            except InvalidOperation:
+                data = {'errors': [{
+                    'title': 'client error',
+                    'detail': 'Expected a decimal number for offset, got {}'
+                              .format(args.get('offset'))
+                }]}
+                return data, flask_api.status.HTTP_400_BAD_REQUEST
 
         r, status = posts_table.get(params)
         if not flask_api.status.is_success(status):
@@ -222,8 +231,8 @@ class SocialContentList(flask_restful.Resource):
             'text': params['Item'].get('text'),
             'media_link': params['Item'].get('media_link'),
             'poster_id': userid,
-            'poster_name': user_info.get('userid', {}).get('name'),
-            'poster_icon': user_info.get('userid', {}).get('poster_icon'),
+            'poster_name': user_info.get(userid, {}).get('name'),
+            'poster_icon': user_info.get(userid, {}).get('poster_icon'),
         }
         return {'data': data}, flask_api.status.HTTP_201_CREATED
 
@@ -262,7 +271,7 @@ class SocialContentList(flask_restful.Resource):
         log.debug('Posting to FB: %s; posting to Twitter: %s', fb, tw)
 
         try:
-            client = boto3.client('sns')
+            client = boto3.client('sns', region_name=REGION)
             response = client.publish(**params)
             log.debug('Message sent: %s', response.get('MessageId'))
         except Exception as e:
@@ -300,7 +309,7 @@ class SingleSocialContent(flask_restful.Resource):
     def delete(self, postid):
         postid = Decimal(postid)
         params = {
-            'ProjectionExpression': 'poster_id',
+            'ProjectionExpression': 'poster_id,flag_count',
             'KeyConditionExpression':
                 Key('posts').eq('posts') & Key('timestamp').eq(postid),
         }
@@ -316,13 +325,19 @@ class SingleSocialContent(flask_restful.Resource):
                                 'detail': "can not delete un-owned post"}]}
             return data, flask_api.status.HTTP_403_FORBIDDEN
 
+        if r[0].get('flag_count') > 0:
+            params = {
+                'Key': {
+                    'timestamp': postid,
+                },
+            }
+            flag_table.delete(params)
+
         params = {
             'Key': {
                 'posts': 'posts',
                 'timestamp': postid,
             },
-            'ConditionExpression': Attr('poster_id').eq(userid),
-            'ReturnItemCollectionMetrics': 'SIZE',
         }
 
         decrement_points(userid)
@@ -429,10 +444,10 @@ class FlaggedPostList(flask_restful.Resource):
     @requires_admin
     def get(self):
         """{"args": {"limit": "(int, default=25)",
-                     "offset": "(float, required)"}}"""
+                     "offset": "(str, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
-        req.add_argument('offset', type=float, location='args', required=False)
+        req.add_argument('offset', type=str, location='args', required=False)
         args = req.parse_args()
 
         limit = min(args['limit'], MAX_POSTS)
@@ -446,9 +461,17 @@ class FlaggedPostList(flask_restful.Resource):
         }
 
         if args.get('offset'):
-            params['ExclusiveStartKey'] = {
-                'timestamp': Decimal(args.get('offset')),
-            }
+            try:
+                params['ExclusiveStartKey'] = {
+                    'timestamp': Decimal(args.get('offset')),
+                }
+            except InvalidOperation:
+                data = {'errors': [{
+                    'title': 'client error',
+                    'detail': 'Expected a decimal number for offset, got {}'
+                              .format(args.get('offset'))
+                }]}
+                return data, flask_api.status.HTTP_400_BAD_REQUEST
 
         r, status = flag_table.scan(params)
         if not flask_api.status.is_success(status):
