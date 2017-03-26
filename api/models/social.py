@@ -135,7 +135,7 @@ class SocialContentList(flask_restful.Resource):
                 data = {'errors': [{
                     'title': 'client error',
                     'detail': 'Expected a decimal number for offset, got {}'
-                    .format(args.get('offset'))
+                              .format(args.get('offset'))
                 }]}
                 return data, flask_api.status.HTTP_400_BAD_REQUEST
 
@@ -469,7 +469,7 @@ class FlaggedPostList(flask_restful.Resource):
                 data = {'errors': [{
                     'title': 'client error',
                     'detail': 'Expected a decimal number for offset, got {}'
-                    .format(args.get('offset'))
+                              .format(args.get('offset'))
                 }]}
                 return data, flask_api.status.HTTP_400_BAD_REQUEST
 
