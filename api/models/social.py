@@ -309,7 +309,7 @@ class SingleSocialContent(flask_restful.Resource):
     def delete(self, postid):
         postid = Decimal(postid)
         params = {
-            'ProjectionExpression': 'poster_id',
+            'ProjectionExpression': 'poster_id,flag_count',
             'KeyConditionExpression':
                 Key('posts').eq('posts') & Key('timestamp').eq(postid),
         }
@@ -325,13 +325,19 @@ class SingleSocialContent(flask_restful.Resource):
                                 'detail': "can not delete un-owned post"}]}
             return data, flask_api.status.HTTP_403_FORBIDDEN
 
+        if r[0].get('flag_count') > 0:
+            params = {
+                'Key': {
+                    'timestamp': postid,
+                },
+            }
+            flag_table.delete(params)
+
         params = {
             'Key': {
                 'posts': 'posts',
                 'timestamp': postid,
             },
-            'ConditionExpression': Attr('poster_id').eq(userid),
-            'ReturnItemCollectionMetrics': 'SIZE',
         }
 
         decrement_points(userid)
