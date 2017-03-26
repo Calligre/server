@@ -103,7 +103,7 @@ class SocialContentList(flask_restful.Resource):
     @requires_auth
     def get(self):
         """{"args": {"limit": "(int, default=25)",
-                     "offset": "(str)"}}"""
+                     "offset": "(str, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
         req.add_argument('offset', type=str, location='args', required=False)
@@ -444,7 +444,7 @@ class FlaggedPostList(flask_restful.Resource):
     @requires_admin
     def get(self):
         """{"args": {"limit": "(int, default=25)",
-                     "offset": "(str)"}}"""
+                     "offset": "(str, default=None)"}}"""
         req = flask_restful.reqparse.RequestParser()
         req.add_argument('limit', type=int, location='args', default=MAX_POSTS)
         req.add_argument('offset', type=str, location='args', required=False)
