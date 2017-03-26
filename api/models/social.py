@@ -30,6 +30,7 @@ DEFAULT_PROFILE_PIC = os.environ.get('DEFAULT_PROFILE_PIC',
                                      'calligre-profilepics/default.png')
 POSTS_TABLE_NAME = os.environ.get('POSTS_TABLE', 'calligre-posts')
 FLAG_TABLE_NAME = os.environ.get('FLAGS_TABLE', 'flagged')
+REGION = os.environ.get('DYNAMO_REGION', 'us-west-2')
 posts_table = dynamo.DynamoWrapper(table_name=POSTS_TABLE_NAME)
 flag_table = dynamo.DynamoWrapper(table_name=FLAG_TABLE_NAME)
 
@@ -262,7 +263,7 @@ class SocialContentList(flask_restful.Resource):
         log.debug('Posting to FB: %s; posting to Twitter: %s', fb, tw)
 
         try:
-            client = boto3.client('sns')
+            client = boto3.client('sns', region_name=REGION)
             response = client.publish(**params)
             log.debug('Message sent: %s', response.get('MessageId'))
         except Exception as e:
