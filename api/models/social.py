@@ -223,8 +223,8 @@ class SocialContentList(flask_restful.Resource):
             'text': params['Item'].get('text'),
             'media_link': params['Item'].get('media_link'),
             'poster_id': userid,
-            'poster_name': user_info.get('userid', {}).get('name'),
-            'poster_icon': user_info.get('userid', {}).get('poster_icon'),
+            'poster_name': user_info.get(userid, {}).get('name'),
+            'poster_icon': user_info.get(userid, {}).get('poster_icon'),
         }
         return {'data': data}, flask_api.status.HTTP_201_CREATED
 
