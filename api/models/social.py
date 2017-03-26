@@ -87,6 +87,17 @@ def format_post_response(posts, req_userid=None):
     return posts, st
 
 
+def check_decimalness(val):
+    try:
+        return Decimal(val), flask_api.status.HTTP_200_OK
+    except InvalidOperation:
+        data = {'errors': [{
+            'title': 'client error',
+            'detail': 'Expected a decimal number, got {} instead'.format(val)
+        }]}
+        return data, flask_api.status.HTTP_400_BAD_REQUEST
+
+
 def increment_points(req_userid):
     database.patch('user',
                    'UPDATE account SET points = points + 1 where id = %(id)s',
@@ -126,18 +137,14 @@ class SocialContentList(flask_restful.Resource):
         }
 
         if args.get('offset'):
-            try:
-                params['ExclusiveStartKey'] = {
-                    'posts': 'posts',
-                    'timestamp': Decimal(args.get('offset')),
+            timestamp, status = check_decimalness(args.get('offset'))
+            if not flask_api.status.is_success(status):
+                return timestamp, status
+
+            params['ExclusiveStartKey'] = {
+                'posts': 'posts',
+                'timestamp': timestamp,
                 }
-            except InvalidOperation:
-                data = {'errors': [{
-                    'title': 'client error',
-                    'detail': 'Expected a decimal number for offset, got {}'
-                              .format(args.get('offset'))
-                }]}
-                return data, flask_api.status.HTTP_400_BAD_REQUEST
 
         r, status = posts_table.get(params)
         if not flask_api.status.is_success(status):
@@ -307,7 +314,9 @@ class SocialContentUploadURL(flask_restful.Resource):
 class SingleSocialContent(flask_restful.Resource):
     @requires_auth
     def delete(self, postid):
-        postid = Decimal(postid)
+        postid, status = check_decimalness(postid)
+        if not flask_api.status.is_success(status):
+            return postid, status
         params = {
             'ProjectionExpression': 'poster_id,flag_count',
             'KeyConditionExpression':
@@ -345,7 +354,9 @@ class SingleSocialContent(flask_restful.Resource):
 
     @requires_auth
     def get(self, postid):
-        postid = Decimal(postid)
+        postid, status = check_decimalness(postid)
+        if not flask_api.status.is_success(status):
+            return postid, status
         params = {
             'Limit': 1,
             'ScanIndexForward': False,
@@ -379,10 +390,14 @@ class SingleSocialContentLikes(flask_restful.Resource):
     @requires_auth
     def delete(self, postid):
         userid = _request_ctx_stack.top.current_user['sub']
+        postid, status = check_decimalness(postid)
+        if not flask_api.status.is_success(status):
+            return postid, status
+
         params = {
             'Key': {
                 'posts': 'posts',
-                'timestamp': Decimal(postid),
+                'timestamp': postid,
             },
             'UpdateExpression':
                 'DELETE likes :like SET like_count = like_count - :1',
@@ -399,7 +414,9 @@ class SingleSocialContentLikes(flask_restful.Resource):
 
     @requires_auth
     def get(self, postid):
-        postid = Decimal(postid)
+        postid, status = check_decimalness(postid)
+        if not flask_api.status.is_success(status):
+            return postid, status
         params = {
             'ProjectionExpression': 'likers',
             'KeyConditionExpression':
@@ -420,10 +437,14 @@ class SingleSocialContentLikes(flask_restful.Resource):
     @requires_auth
     def post(self, postid):
         userid = _request_ctx_stack.top.current_user['sub']
+        postid, status = check_decimalness(postid)
+        if not flask_api.status.is_success(status):
+            return postid, status
+
         params = {
             'Key': {
                 'posts': 'posts',
-                'timestamp': Decimal(postid),
+                'timestamp': postid,
             },
             'UpdateExpression':
                 'ADD likes :like SET like_count = like_count + :1',
@@ -461,17 +482,13 @@ class FlaggedPostList(flask_restful.Resource):
         }
 
         if args.get('offset'):
-            try:
-                params['ExclusiveStartKey'] = {
-                    'timestamp': Decimal(args.get('offset')),
-                }
-            except InvalidOperation:
-                data = {'errors': [{
-                    'title': 'client error',
-                    'detail': 'Expected a decimal number for offset, got {}'
-                              .format(args.get('offset'))
-                }]}
-                return data, flask_api.status.HTTP_400_BAD_REQUEST
+            timestamp, status = check_decimalness(args.get('offset'))
+            if not flask_api.status.is_success(status):
+                return timestamp, status
+
+            params['ExclusiveStartKey'] = {
+                'timestamp': timestamp,
+            }
 
         r, status = flag_table.scan(params)
         if not flask_api.status.is_success(status):
@@ -520,7 +537,10 @@ class PostFlag(flask_restful.Resource):
     def delete(self, postid):
         userid = _request_ctx_stack.top.current_user['sub']
         is_admin = _request_ctx_stack.top.current_user['cap'] >= 4
-        timestamp = Decimal(postid)
+        timestamp, status = check_decimalness(postid)
+        if not flask_api.status.is_success(status):
+            return timestamp, status
+
         if not is_admin:
             params = {
                 'Key': {
@@ -566,7 +586,10 @@ class PostFlag(flask_restful.Resource):
     @requires_auth
     def post(self, postid):
         userid = _request_ctx_stack.top.current_user['sub']
-        timestamp = Decimal(postid)
+        timestamp, status = check_decimalness(postid)
+        if not flask_api.status.is_success(status):
+            return timestamp, status
+
         params = {
             'Key': {
                 'posts': 'posts',
