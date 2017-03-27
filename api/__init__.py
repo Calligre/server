@@ -71,11 +71,11 @@ restful.add_resource(api.models.social.FlaggedPostList, '/social/flags')
 restful.add_resource(api.models.social.SocialContentUploadURL,
                      '/social-image-upload-url')
 restful.add_resource(api.models.social.SingleSocialContent,
-                     '/social/<str:postid>')
+                     '/social/<postid>')
 restful.add_resource(api.models.social.SingleSocialContentLikes,
-                     '/social/<str:postid>/likes')
+                     '/social/<postid>/likes')
 restful.add_resource(api.models.social.PostFlag,
-                     '/social/<str:postid>/flag')
+                     '/social/<postid>/flag')
 
 restful.add_resource(api.models.stream.StreamList, '/stream')
 
