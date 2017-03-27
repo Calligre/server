@@ -494,6 +494,14 @@ class FlaggedPostList(flask_restful.Resource):
         if not flask_api.status.is_success(status):
             return r, status
 
+        # There might be no flagged posts at all
+        if r.get('Count', 0) == 0:
+            body = {
+                'posts': [],
+                'nextOffset': None,
+            }
+            return {'data': body}, flask_api.status.HTTP_200_OK
+
         # the flagged list might need to be paginated, store the offset now
         nextOffset = r.get('LastEvaluatedKey', {}).get('timestamp')
         if nextOffset:
