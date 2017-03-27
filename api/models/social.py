@@ -495,7 +495,7 @@ class FlaggedPostList(flask_restful.Resource):
             return r, status
 
         # There might be no flagged posts at all
-        if r.get('Count', 0) == 0:
+        if not r.get('Count'):
             body = {
                 'posts': [],
                 'nextOffset': None,
