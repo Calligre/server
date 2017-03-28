@@ -210,7 +210,7 @@ class SocialContentList(flask_restful.Resource):
                 try:
                     split_url = urlparse(url)
                     # Throw away the query string since that contains the sig
-                    split_url._replace(query="")
+                    split_url = split_url._replace(query="")
                     params['Item']['media_link'] = urlunparse(split_url)
                     log.debug("Rewrote %s to %s",
                               args.get('media_link'),
