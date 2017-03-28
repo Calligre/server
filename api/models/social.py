@@ -29,7 +29,7 @@ DEFAULT_PROFILE_PIC = os.environ.get('DEFAULT_PROFILE_PIC',
                                      'https://s3-us-west-2.amazonaws.com/'
                                      'calligre-profilepics/default.png')
 POSTS_TABLE_NAME = os.environ.get('POSTS_TABLE', 'calligre-posts')
-FLAG_TABLE_NAME = os.environ.get('FLAGS_TABLE', 'flagged')
+FLAG_TABLE_NAME = os.environ.get('FLAG_TABLE', 'flagged')
 REGION = os.environ.get('DYNAMO_REGION', 'us-west-2')
 posts_table = dynamo.DynamoWrapper(table_name=POSTS_TABLE_NAME)
 flag_table = dynamo.DynamoWrapper(table_name=FLAG_TABLE_NAME)
