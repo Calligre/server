@@ -5,7 +5,7 @@ import random
 import string
 import time
 from decimal import Decimal, InvalidOperation
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 import boto3
 from boto3.dynamodb.conditions import Attr, Key, Not
@@ -220,7 +220,6 @@ class SocialContentList(flask_restful.Resource):
                     log.exception(ex)
             else:
                 params['Item']['media_link'] = args.get('media_link')
-
 
         r, status = posts_table.put(params)
         if not flask_api.status.is_success(status):
