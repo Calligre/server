@@ -245,7 +245,7 @@ class SocialContentList(flask_restful.Resource):
         return {'data': data}, flask_api.status.HTTP_201_CREATED
 
     @staticmethod
-    def external_post(req_userid, message, media_s3, fb, tw):
+    def external_post(req_userid, message, media_link, fb, tw):
         params = {
             'TopicArn': EXT_POSTS_TOPIC,
             'Message': message,
@@ -266,16 +266,16 @@ class SocialContentList(flask_restful.Resource):
             },
         }
 
-        if media_s3:
-            params['MessageAttributes']['media_s3'] = {
+        if media_link:
+            params['MessageAttributes']['media_link'] = {
                 'DataType': 'String',
-                'StringValue': media_s3,
+                'StringValue': media_link,
             }
 
         log.debug('%s saying "%s", with media %s',
                   req_userid,
                   message,
-                  media_s3)
+                  media_link)
         log.debug('Posting to FB: %s; posting to Twitter: %s', fb, tw)
 
         try:
