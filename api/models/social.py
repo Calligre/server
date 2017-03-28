@@ -203,22 +203,24 @@ class SocialContentList(flask_restful.Resource):
             params['Item']['text'] = args.get('text')
 
         if args.get('media_link'):
-            try:
-                u = urlparse(args.get('media_link'))
-                if u.netloc == "{}.s3.amazonaws.com".format(RESIZE_BUCKET):
-                    params['Item']['media_link'] = \
-                        "https://{}.s3.amazonaws.com{}".format(
-                            UPLOAD_BUCKET,
-                            u.path
-                        )
+            # We uploaded a photo
+            if RESIZE_BUCKET in args.get('media_link'):
+                url = args.get('media_link').replace(RESIZE_BUCKET,
+                                                     UPLOAD_BUCKET)
+                try:
+                    split_url = urlparse(url)
+                    # Throw away the query string since that contains the sig
+                    split_url._replace(query="")
+                    params['Item']['media_link'] = urlunparse(split_url)
                     log.debug("Rewrote %s to %s",
                               args.get('media_link'),
                               params['Item']['media_link'])
-                else:
-                    params['Item']['media_link'] = args.get('media_link')
-            except Exception as ex:
-                log.error("Error parsing media link")
-                log.exception(ex)
+                except Exception as ex:
+                    log.error("Error parsing media link")
+                    log.exception(ex)
+            else:
+                params['Item']['media_link'] = args.get('media_link')
+
 
         r, status = posts_table.put(params)
         if not flask_api.status.is_success(status):
