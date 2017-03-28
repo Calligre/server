@@ -228,7 +228,7 @@ class SocialContentList(flask_restful.Resource):
         if args.get('post_fb') or args.get('post_tw'):
             self.external_post(userid,
                                args.get('text'),
-                               args.get('media_link'),
+                               params['Item']['media_link'],
                                args.get('post_fb', False),
                                args.get('post_tw', False))
 
