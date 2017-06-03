@@ -100,16 +100,16 @@ def check_decimalness(val):
 
 def increment_points(req_userid, points=1):
     database.patch('user',
-                   'UPDATE account SET points = points + %(points)d where id =\
+                   'UPDATE account SET points = points + %(points)s where id =\
                     %(id)s',
-                   {'id': req_userid})
+                   {'id': req_userid, 'points': points})
 
 
 def decrement_points(req_userid, points=1):
     database.patch('user',
-                   'UPDATE account SET points = points - %(points)d where id =\
+                   'UPDATE account SET points = points - %(points)s where id =\
                     %(id)s',
-                   {'id': req_userid})
+                   {'id': req_userid, 'points': points})
 
 
 class SocialContentList(flask_restful.Resource):
