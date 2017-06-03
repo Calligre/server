@@ -98,15 +98,17 @@ def check_decimalness(val):
         return data, flask_api.status.HTTP_400_BAD_REQUEST
 
 
-def increment_points(req_userid):
+def increment_points(req_userid, points=1):
     database.patch('user',
-                   'UPDATE account SET points = points + 1 where id = %(id)s',
+                   'UPDATE account SET points = points + %(points)d where id =\
+                    %(id)s',
                    {'id': req_userid})
 
 
-def decrement_points(req_userid):
+def decrement_points(req_userid, points=1):
     database.patch('user',
-                   'UPDATE account SET points = points - 1 where id = %(id)s',
+                   'UPDATE account SET points = points - %(points)d where id =\
+                    %(id)s',
                    {'id': req_userid})
 
 
@@ -231,7 +233,7 @@ class SocialContentList(flask_restful.Resource):
                                args.get('post_fb', False),
                                args.get('post_tw', False))
 
-        increment_points(userid)
+        increment_points(userid, 3)
         user_info, _ = map_id_to_names([userid])
         data = {
             'id': str(timestamp),
@@ -349,7 +351,7 @@ class SingleSocialContent(flask_restful.Resource):
             },
         }
 
-        decrement_points(userid)
+        decrement_points(userid, 3)
         return posts_table.delete(params)
 
     @requires_auth
@@ -408,7 +410,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
             'ConditionExpression': Attr('likes').contains(userid),
         }
 
-        decrement_points(userid)
+        decrement_points(userid, 1)
 
         return posts_table.patch(params)
 
@@ -455,7 +457,7 @@ class SingleSocialContentLikes(flask_restful.Resource):
             'ConditionExpression': Not(Attr('likes').contains(userid))
         }
 
-        increment_points(userid)
+        increment_points(userid, 1)
 
         return posts_table.patch(params)
 
