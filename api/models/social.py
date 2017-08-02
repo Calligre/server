@@ -5,7 +5,7 @@ import random
 import string
 import time
 from decimal import Decimal, InvalidOperation
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 import boto3
 from boto3.dynamodb.conditions import Attr, Key, Not
@@ -29,7 +29,7 @@ DEFAULT_PROFILE_PIC = os.environ.get('DEFAULT_PROFILE_PIC',
                                      'https://s3-us-west-2.amazonaws.com/'
                                      'calligre-profilepics/default.png')
 POSTS_TABLE_NAME = os.environ.get('POSTS_TABLE', 'calligre-posts')
-FLAG_TABLE_NAME = os.environ.get('FLAGS_TABLE', 'flagged')
+FLAG_TABLE_NAME = os.environ.get('FLAG_TABLE', 'flagged')
 REGION = os.environ.get('DYNAMO_REGION', 'us-west-2')
 posts_table = dynamo.DynamoWrapper(table_name=POSTS_TABLE_NAME)
 flag_table = dynamo.DynamoWrapper(table_name=FLAG_TABLE_NAME)
@@ -205,22 +205,23 @@ class SocialContentList(flask_restful.Resource):
             params['Item']['text'] = args.get('text')
 
         if args.get('media_link'):
-            try:
-                u = urlparse(args.get('media_link'))
-                if u.netloc == "{}.s3.amazonaws.com".format(RESIZE_BUCKET):
-                    params['Item']['media_link'] = \
-                        "https://{}.s3.amazonaws.com{}".format(
-                            UPLOAD_BUCKET,
-                            u.path
-                        )
+            # We uploaded a photo
+            if RESIZE_BUCKET in args.get('media_link'):
+                url = args.get('media_link').replace(RESIZE_BUCKET,
+                                                     UPLOAD_BUCKET)
+                try:
+                    split_url = urlparse(url)
+                    # Throw away the query string since that contains the sig
+                    split_url = split_url._replace(query="")
+                    params['Item']['media_link'] = urlunparse(split_url)
                     log.debug("Rewrote %s to %s",
                               args.get('media_link'),
                               params['Item']['media_link'])
-                else:
-                    params['Item']['media_link'] = args.get('media_link')
-            except Exception as ex:
-                log.error("Error parsing media link")
-                log.exception(ex)
+                except Exception as ex:
+                    log.error("Error parsing media link")
+                    log.exception(ex)
+            else:
+                params['Item']['media_link'] = args.get('media_link')
 
         r, status = posts_table.put(params)
         if not flask_api.status.is_success(status):
@@ -229,7 +230,7 @@ class SocialContentList(flask_restful.Resource):
         if args.get('post_fb') or args.get('post_tw'):
             self.external_post(userid,
                                args.get('text'),
-                               args.get('media_link'),
+                               params['Item']['media_link'],
                                args.get('post_fb', False),
                                args.get('post_tw', False))
 
@@ -246,7 +247,7 @@ class SocialContentList(flask_restful.Resource):
         return {'data': data}, flask_api.status.HTTP_201_CREATED
 
     @staticmethod
-    def external_post(req_userid, message, media_s3, fb, tw):
+    def external_post(req_userid, message, media_link, fb, tw):
         params = {
             'TopicArn': EXT_POSTS_TOPIC,
             'Message': message,
@@ -267,16 +268,16 @@ class SocialContentList(flask_restful.Resource):
             },
         }
 
-        if media_s3:
-            params['MessageAttributes']['media_s3'] = {
+        if media_link:
+            params['MessageAttributes']['media_link'] = {
                 'DataType': 'String',
-                'StringValue': media_s3,
+                'StringValue': media_link,
             }
 
         log.debug('%s saying "%s", with media %s',
                   req_userid,
                   message,
-                  media_s3)
+                  media_link)
         log.debug('Posting to FB: %s; posting to Twitter: %s', fb, tw)
 
         try:
@@ -305,7 +306,7 @@ class SocialContentUploadURL(flask_restful.Resource):
         post_url = boto3.client('s3').generate_presigned_url(
             "put_object", {
                 "Bucket": RESIZE_BUCKET,
-                "Key": '{}-{}'.format(userid.replace('|', '-'), suffix),
+                "Key": '{}-{}.jpg'.format(userid.replace('|', '-'), suffix),
                 "ContentType": args['Content-Type']
             }
         )
